@@ -1,1 +1,3 @@
 export const BCRYPT_SALT_ROUNDS = 10;
+export const ACCESS_TOKEN_AGE = 60000000;
+export const REFRESH_TOKEN_AGE = 36000000;
