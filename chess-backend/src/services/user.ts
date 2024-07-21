@@ -27,6 +27,16 @@ export async function createUser(
 
     }
   }
+export async function getUserDetails(email:string){
+  let foundUser=await userModels.UserModel.findByEmail(email)
+  if (foundUser.length == 0) {
+    throw new ConflictError("No such user");
+    
+  }
+  return foundUser
+  
+}
+
 
   
   

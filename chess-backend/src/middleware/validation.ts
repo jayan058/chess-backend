@@ -4,7 +4,6 @@ import BadRequestError from "../error/badRequestError";
 
 export function validateBody(schema: ObjectSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body);
     const { error } = schema.validate(req.body);
     if (error) {
       next(new BadRequestError(error.details[0].message));
