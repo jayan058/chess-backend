@@ -11,8 +11,12 @@ export default class RoomModel extends BaseModel {
      
     };
     await this.queryBuilder().insert(roomToCreate).table('rooms');
+    return "Success"
   }
   static async findByName(roomName: string) {
+    
+    
+    
     const room = await this.queryBuilder()
       .select('*')
       .from('rooms')
@@ -45,7 +49,7 @@ export default class RoomModel extends BaseModel {
   // Optional: Method to get all participants of a room
   static async getParticipants(roomId: number) {
     const participants = await this.queryBuilder()
-      .select('users.*')
+      .select('*')
       .from('room_participants')
       .join('users', 'room_participants.user_id', 'users.id')
       .where('room_participants.room_id', roomId);
@@ -53,10 +57,15 @@ export default class RoomModel extends BaseModel {
     return participants;
   }
 
-  static async addParticipant(roomName: string, userId: number) {
+  static async addParticipant(roomName: string, userId: number,sockeId:string) {
+
+    
     // Find the room by name
     const room = await this.findByName(roomName);
+console.log(room.id);
+console.log(userId);
 
+    
     if (!room) {
       throw new Error('Room not found');
     }
@@ -67,6 +76,7 @@ export default class RoomModel extends BaseModel {
         room_id: room.id,
         user_id: userId,
         joined_at: new Date(),
+        socket_id:sockeId
       })
       .into('room_participants');
   }

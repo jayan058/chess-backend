@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable(TABLE_NAME, (table) => {
     table.integer('room_id').references('id').inTable('rooms').onDelete('CASCADE');
     table.integer('user_id').references('id').inTable('users').onDelete('CASCADE');
+    table.string('socket_id')
     table.timestamp('joined_at').defaultTo(knex.fn.now()).notNullable();
     table.primary(['room_id', 'user_id']);
   });
