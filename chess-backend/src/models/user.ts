@@ -14,7 +14,6 @@ export class UserModel extends BaseModel {
         updated_at:new Date(),
 
       };
-      console.log(userToCreate);
       await this.queryBuilder().insert(userToCreate).table("users");
   
     }

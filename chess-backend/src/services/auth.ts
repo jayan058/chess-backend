@@ -14,7 +14,6 @@ import { ACCESS_TOKEN_AGE, REFRESH_TOKEN_AGE } from "../constants";
 let refreshTokens: string[] = [];
 export async function login(email: string, password: string, res: Response) {
   const userExists = await userModels.UserModel.findByEmail(email);
-  console.log(userExists);
 
   if (userExists.length == 0) {
     throw new NotFoundError("No Matching Email");

@@ -11,7 +11,6 @@ export async function createNewRoom(roomName: string, userId: number,socketId:st
     
    
     if (existingRoom) {
-      console.log(existingRoom);
       throw new ConflictError("Room Already Exists. Try A Different Name");
    
     }
@@ -29,7 +28,6 @@ export async function createNewRoom(roomName: string, userId: number,socketId:st
 export const joinRoom = async (userId:number, roomName:string,socketId:string) => {
   try {
     const room = await RoomModel.findByName(roomName);
-    console.log(room);
     
     if (room) {
       await RoomModel.addParticipant(roomName, userId,socketId);
@@ -43,3 +41,16 @@ export const joinRoom = async (userId:number, roomName:string,socketId:string) =
     throw error
   }
 };
+
+
+export async function getRoomStatus(roomName:string){
+  const room = await RoomModel.findByName(roomName);
+  let participant=await RoomModel.getParticipants(room.id);
+  return {participant}
+}
+
+
+
+export async function deleteRoom(userId:number){
+  await  RoomModel.deleteRoom(userId)
+}

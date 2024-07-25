@@ -12,7 +12,6 @@ export async function createUser(
   next: NextFunction
 ): Promise<void> { 
   try {
-    console.log(req.body.user);
     const {userName,email,password}=req.body
     const photo = req.file; 
     photo!.path=getRelativeFilePath(photo!.filename)

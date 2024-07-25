@@ -8,8 +8,10 @@ import config from "./config";
 import router from "./router";
 import errorHandler from "./middleware/errorHandler";
 import { authenticateSocket } from "./middleware/socketAuth";
-import { createRoom,joinRoom } from './controller/room';
+import { createRoom,deleteRoom,joinRoom } from './controller/room';
 import { ExtendedSocket } from "./interface/socket";
+import * as gameController from "./controller/game"; 
+
 const app = express();
 app.use(cors({
   origin: 'http://localhost:5173', // Your client URL
@@ -39,15 +41,19 @@ io.use(authenticateSocket);
 
 io.on('connection', (socket:ExtendedSocket) => {
   socket.on('createRoom', async ({ roomName }) => {
+    console.log(socket.id);
+    
     try {
       const userId = socket.user.id;
-      console.log(`User ID: ${userId} is creating a room with name: ${roomName}`);
+    
       await createRoom(userId, roomName,socket,socket.id);
     } catch (error) {
      
     }
   });
   socket.on('joinRoom', async ({ roomName }) => {
+  
+
     try {
       const userId = socket.user.id; // Assuming socket.user is set elsewhere
       await joinRoom(userId, roomName,socket,socket.id);
@@ -56,17 +62,25 @@ io.on('connection', (socket:ExtendedSocket) => {
     
     }
   });
+  socket.on('move', async (move) => {
+    try{
+      console.log(socket.id);
+      
+    
+    const userId = socket.user.id;
+    await gameController.handleMove(userId, move,socket);
 
-  socket.on('joinRoom', async ({ roomName }) => {
-    // Your room joining logic here
-  });
+    }
+    catch(error){
 
-  socket.on('startGame', ({ roomName }) => {
-    io.to(roomName).emit('gameStarted');
-  });
+    }
+});
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+
+ 
+  socket.on('playerDisconnected', () => {
+    const userId = socket.user.id;
+    deleteRoom(userId)
   });
 });
 

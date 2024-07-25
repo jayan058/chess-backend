@@ -62,8 +62,7 @@ export default class RoomModel extends BaseModel {
     
     // Find the room by name
     const room = await this.findByName(roomName);
-console.log(room.id);
-console.log(userId);
+
 
     
     if (!room) {
@@ -80,5 +79,62 @@ console.log(userId);
       })
       .into('room_participants');
   }
+
+
+  static async getRoomIdByUserId  (userId:number) {
+    const result = await this.queryBuilder()
+        .select('room_id')
+        .from('room_participants')
+        .where('user_id', userId)
+        .first();
+
+   
+        
+    return result.roomId ;
+};
+
+
+// Function to get all socket IDs by room ID
+static async getSocketIdsByRoomId (roomId:number) {
+  
+    const results = await this.queryBuilder()
+        .select('socket_id')
+        .from('room_participants')
+        .where('room_id', roomId);
+      
+      
+    return results.map(row => row.socketId);
+};
+
+
+static async deleteRoom(userId: number) {
+//   // Get the room ID(s) associated with the userId
+   const roomsToDelete = await this.queryBuilder()
+      .select('room_id')
+      .from('room_participants')
+      .where('user_id', userId)
+      .first();
+  console.log(roomsToDelete);
+  
+// //   // Extract room IDs from the results
+
+// //   // Delete all rows with the specified userId from room_participants
+  await this.queryBuilder()
+      .from('room_participants')
+       .where('user_id', userId)
+       .delete();
+
+//   // Delete all rows from room_participants with the same room_id as the userId
+  await this.queryBuilder()
+  .from('room_participants')
+  .where('room_id', roomsToDelete.roomId)
+  .delete();
+
+// // // Step 4: Delete the room with the specified room_id
+ await this.queryBuilder()
+  .from('rooms')
+ .where('id', roomsToDelete.roomId)   
+ .delete();
+   };
 
 }

@@ -20,7 +20,6 @@ export function authenticateSocket(socket: ExtendedSocket, next: (err?: any) => 
       email: string;
     };
     socket.user = decoded; // Attach user info to socket
-    console.log(socket.user);
     
     next();
   } catch (error) {

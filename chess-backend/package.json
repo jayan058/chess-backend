@@ -17,6 +17,7 @@
   "description": "",
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/chess.js": "^0.13.7",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.0",
@@ -35,6 +36,7 @@
     "@types/uuid": "^10.0.0",
     "bcrypt": "^5.1.1",
     "camelize": "^1.0.1",
+    "chess.js": "^1.0.0-beta.8",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
