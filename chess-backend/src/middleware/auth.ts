@@ -25,6 +25,7 @@ export function authenticate(
         id: string;
         name: string;
         email: string;
+        
 
       };
   
