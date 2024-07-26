@@ -3,84 +3,86 @@ import express, { NextFunction } from "express";
 import http from "http";
 import { Server as SocketIo } from "socket.io";
 import cors from "cors";
-import path from 'path';
+import path from "path";
 import config from "./config";
 import router from "./router";
 import errorHandler from "./middleware/errorHandler";
 import { authenticateSocket } from "./middleware/socketAuth";
-import { createRoom,deleteRoom,joinRoom } from './controller/room';
+import {
+  createRoom,
+  deleteRoom,
+  joinRoom,
+  handleTurn,
+} from "./controller/room";
 import { ExtendedSocket } from "./interface/socket";
-import * as gameController from "./controller/game"; 
+import * as gameController from "./controller/game";
+// import { roomTimers } from "./controller/room";
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:5173', // Your client URL
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Your client URL
+    credentials: true,
+  })
+);
 
 const server = http.createServer(app);
 export const io = new SocketIo(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(router);
 
-
-
-const uploadsPath = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadsPath));
-
+const uploadsPath = path.join(__dirname, "uploads");
+app.use("/uploads", express.static(uploadsPath));
 
 io.use(authenticateSocket);
 
-io.on('connection', (socket:ExtendedSocket) => {
-  socket.on('createRoom', async ({ roomName }) => {
-    console.log(socket.id);
-    
+io.on("connection", (socket: ExtendedSocket) => {
+  socket.on("createRoom", async ({ roomName }) => {
+   
+   
+
     try {
       const userId = socket.user.id;
-    
-      await createRoom(userId, roomName,socket,socket.id);
-    } catch (error) {
-     
-    }
+      await createRoom(userId, roomName, socket, socket.id);
+    } catch (error) {}
   });
-  socket.on('joinRoom', async ({ roomName }) => {
-  
-
+  socket.on("joinRoom", async ({ roomName }) => {
     try {
+    
       const userId = socket.user.id; // Assuming socket.user is set elsewhere
-      await joinRoom(userId, roomName,socket,socket.id);
-      
-    } catch (error) {
-    
-    }
+      await joinRoom(userId, roomName, socket, socket.id);
+      (socket as any).roomName = roomName;
+    } catch (error) {}
   });
-  socket.on('move', async (move) => {
-    try{
-      console.log(socket.id);
-      
+  socket.on("move", async (move, playerId, color) => {
+    try {
+      const userId = socket.user.id;
+      await gameController.handleMove(userId, move, socket, color);
+    } catch (error) {}
+  });
+
+  socket.on("turn", async (turn) => {
+    try {
+      const userId = socket.user.id;
+      await handleTurn(userId, turn, socket);
+    } catch (error) {}
+  });
+
+  socket.on("disconnect", () => {
+   
     
+    const roomName = (socket as any).roomName;
+
     const userId = socket.user.id;
-    await gameController.handleMove(userId, move,socket);
-
-    }
-    catch(error){
-
-    }
-});
-
-
- 
-  socket.on('playerDisconnected', () => {
-    const userId = socket.user.id;
-    deleteRoom(userId)
+    deleteRoom(userId);
   });
 });
 
