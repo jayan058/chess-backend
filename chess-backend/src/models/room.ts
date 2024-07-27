@@ -150,6 +150,16 @@ static async getOtherUserInRoom(userId:number,roomId:number){
 
 return userIds;
 }
+static async getRoomIdByName(roomName: string) {
+  const room = await this.queryBuilder()
+    .select("id")
+    .from("rooms")
+    .where("room_name", roomName)
+    .first(); // Fetch the first result only
+
+  return room.id;
+}
+
 
 
     }

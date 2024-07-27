@@ -1,6 +1,7 @@
 import * as gameService from "./../services/game";
 import { ExtendedSocket } from "../interface/socket";
 import { Move } from "../interface/Move";
+import { string } from "joi";
 
 // Function to handle broadcasting a move
 export const handleMove = async (
@@ -52,3 +53,16 @@ export const informOfCheckmate = async (
     socket.emit("error", "Failed to inform of checkMate");
   }
 };
+
+
+export const gameOverByTimOut = async (
+   roomName:string,
+   lossingColor:string
+  ) => {
+    try {
+      await gameService.gameOverByTimeout(roomName,lossingColor);
+    } catch (error) {
+      
+    }
+  };
+

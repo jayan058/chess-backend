@@ -1,5 +1,6 @@
 import { io } from "..";
 import { roomTimers } from "../controller/room";
+import { gameOverByTimeout } from "../services/game";
 
 export function startTimer(roomName: string, color: "white" | "black") {
   const room = roomTimers[roomName];
@@ -28,6 +29,7 @@ export function startTimer(roomName: string, color: "white" | "black") {
         time: room.blackTime,
       });
       if (room.blackTime <= 0) {
+
         clearInterval(room.interval);
         handleTimeOut(roomName, "black");
       }
@@ -40,12 +42,13 @@ function handleTimeOut(roomName: string, color: "white" | "black") {
   const winningColor = color === "white" ? "black" : "white";
   const message = `Looks like it's timeout for ${losingColor}. Sorry ${losingColor}, you lose by timeout. Congrats ${winningColor}, you win by timeout!`;
   io.to(roomName).emit("timeOut", message);
+  gameOverByTimeout(roomName,winningColor)
 }
 
 export function initializeRoom(roomName: string) {
   roomTimers[roomName] = {
-    whiteTime: 600, // 10 minutes in seconds
-    blackTime: 600,
+    whiteTime: 10, // 10 minutes in seconds
+    blackTime: 10,
     interval: null,
   };
 }

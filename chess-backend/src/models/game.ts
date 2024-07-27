@@ -7,9 +7,9 @@ export default class Game extends BaseModel {
 
 
     }
-    static async getGameRoomByRoomId(roomId: number): Promise<{ gameId: number } | null> {
+    static async getGameRoomByRoomId(roomId: number) {
         const gameRoom = await this.queryBuilder()
-          .select('id as gameId')
+          .select("*")
           .from('games')
           .where({ room_id: roomId })
           .first();
@@ -23,10 +23,10 @@ export default class Game extends BaseModel {
           const result = {
             game_id: gameId,
             winner_id: winnerId,
-            draw: winType === 'draw',
-            resignation: winType === 'resignation',
             checkmate: winType === 'checkmate',
-            stalemate: winType === 'stalemate'
+            timeout: winType === 'timeout',
+            disconnect: winType === 'disconnect',
+           
           };
     
           await this.queryBuilder()

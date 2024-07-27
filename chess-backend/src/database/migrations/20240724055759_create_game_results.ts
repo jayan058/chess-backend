@@ -7,10 +7,9 @@ export async function up(knex: Knex): Promise<void> {
     table.increments('id').primary();
     table.integer('game_id').references('id').inTable('games').onDelete('CASCADE');
     table.integer('winner_id').references('id').inTable('users').onDelete('SET NULL');
-    table.boolean('draw').defaultTo(false);
-    table.boolean('resignation').defaultTo(false);
     table.boolean('checkmate').defaultTo(false);
-    table.boolean('stalemate').defaultTo(false);
+    table.boolean('timeout').defaultTo(false);
+    table.boolean('disconnect').defaultTo(false);
     table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
   });
 }

@@ -8,6 +8,7 @@ import MovesModel from "../models/moves";
 import { Participant } from "../interface/participant";
 import NotFoundError from "../error/notFoundError";
 import { Move } from "../interface/Move";
+import { deleteRoom } from "./room";
 export const broadcastMoveToRoom = async (
   userId: number,
   move: Move,
@@ -29,7 +30,7 @@ export const broadcastMoveToRoom = async (
     await MovesModel.saveMove(move, gameRoom?.gameId!);
     startTimer(roomName.roomName, nextColor);
   } catch (error) {
-    
+
   }
 };
 
@@ -76,9 +77,9 @@ export async function informOfGameOver(
   let winnerId = await RoomModel.getOtherUserInRoom(userId, roomId);
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
   await GameModel.addGameResults(
-    gameRoom!.gameId,
+    gameRoom!.id,
     winnerId[0].userId,
-    "resignation"
+    "disconnect"
   );
 }
 
@@ -91,7 +92,9 @@ export async function informOfGameOverByMove(userId: number, message: string) {
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "gameOverByMoves", message);
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-  await GameModel.addGameResults(gameRoom!.gameId, userId, "checkmate");
+  console.log(gameRoom);
+  
+  await GameModel.addGameResults(gameRoom!.id, userId, "checkmate");
 }
 
 export async function informOfCheckmate(userId: number, message: string) {
@@ -103,3 +106,18 @@ export async function informOfCheckmate(userId: number, message: string) {
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "checkMate", message);
 }
+
+export async function gameOverByTimeout(roomName:string,lossingColor:string) {
+   let roomId=await RoomModel.getRoomIdByName(roomName)
+   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+   const losingColorId = lossingColor === "white" ? gameRoom.whitePlayerId :gameRoom.blackPlayerId;
+   
+   await GameModel.addGameResults(gameRoom!.id, losingColorId, "timeout");
+   await deleteRoom(losingColorId)
+ 
+
+  
+}
+
+
+
