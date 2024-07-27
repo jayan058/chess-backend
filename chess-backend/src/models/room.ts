@@ -43,10 +43,12 @@ export default class RoomModel extends BaseModel {
       .select("*")
       .from("room_participants")
       .join("users", "room_participants.user_id", "users.id")
-      .where("room_participants.room_id", roomId);
-
+      .where("room_participants.room_id", roomId)
+      .orderBy("room_participants.joined_at", "asc"); // Adding the ORDER BY clause
+  
     return participants;
   }
+  
 
   static async addParticipant(
     roomName: string,
@@ -134,6 +136,19 @@ static async getRoomByNameAndId(roomId: string) {
     console.error('Error fetching room by name and ID:', error);
     throw error;
   }
+}
+
+
+static async getOtherUserInRoom(userId:number,roomId:number){
+  const userIds = await this.queryBuilder()
+  .select("user_id")
+  .from("room_participants")
+  .where("room_participants.room_id", roomId)
+  .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
+  console.log(userIds);
+  
+
+return userIds;
 }
 
 

@@ -2,10 +2,17 @@ import RoomModel from "../models/room";
 import { io } from "..";
 import GameModel from "../models/game";
 import { startTimer } from "../utils/timer";
+import MovesModel from "../models/moves";
 
 // Function to broadcast a move to all socket IDs in a room
 import { Participant } from "../interface/participant";
-export const broadcastMoveToRoom = async (userId: number, move: string,color:string) => {
+import NotFoundError from "../error/notFoundError";
+import { Move } from "../interface/Move";
+export const broadcastMoveToRoom = async (
+  userId: number,
+  move: Move,
+  color: string
+) => {
   try {
     // Get the room ID for the current user's socket ID
     const roomId = await RoomModel.getRoomIdByUserId(userId);
@@ -14,30 +21,27 @@ export const broadcastMoveToRoom = async (userId: number, move: string,color:str
     }
     // Retrieve all socket IDs for the room
     const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-
-   
     // Broadcast the move to all socket IDs in the room
-     notifyOthers(socketIds,"move",move)
-  
-     
-     const nextColor = color === 'white' ? 'black' : 'white'; // Switch turn color
-     let roomName=await RoomModel.getRoomByNameAndId(roomId)
-     startTimer(roomName.roomName, nextColor);
-  } catch (error) {}
+    notifyOthers(socketIds, "move", move);
+    const nextColor = color === "white" ? "black" : "white"; // Switch turn color
+    let roomName = await RoomModel.getRoomByNameAndId(roomId);
+    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+    await MovesModel.saveMove(move, gameRoom?.gameId!);
+    startTimer(roomName.roomName, nextColor);
+  } catch (error) {
+    
+  }
 };
-
-
 
 export const notifyOthers = (socketIds: string[], event: string, data: any) => {
   socketIds.forEach((socketId: string) => {
     io.to(socketId).emit(event, data);
   });
-}
+};
 
-
-export  async function createGame(participants: Participant[]) {
+export async function createGame(participants: Participant[]) {
   if (participants.length < 2) {
-    throw new Error('Not enough participants to create a game.');
+    throw new Error("Not enough participants to create a game.");
   }
 
   const whitePlayer = participants[0];
@@ -49,22 +53,53 @@ export  async function createGame(participants: Participant[]) {
     room_id: whitePlayer.roomId,
     start_time: new Date(),
   };
-  GameModel.createGame(newGame)
+  GameModel.createGame(newGame);
   try {
-     
-  } catch (error) {
-    
-  }
+  } catch (error) {}
 }
 
-
-export async function informOfGameOver(userId:number){
+export async function informOfGameOver(
+  userId: number,
+  disconnectedSocketId: string
+) {
   const roomId = await RoomModel.getRoomIdByUserId(userId);
   if (!roomId) {
-    throw new Error("User is not in a room");
+    throw new NotFoundError("User is not in a room");
   }
   // Retrieve all socket IDs for the room
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-  notifyOthers(socketIds,"game-over","Oops It Looks Like Opponent has disconnected. You Win!!!!")
+  notifyOthers(
+    socketIds,
+    "game-over",
+    "Oops It Looks Like Opponent has disconnected. You Win!!!!"
+  );
+  let winnerId = await RoomModel.getOtherUserInRoom(userId, roomId);
+  const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+  await GameModel.addGameResults(
+    gameRoom!.gameId,
+    winnerId[0].userId,
+    "resignation"
+  );
 }
 
+export async function informOfGameOverByMove(userId: number, message: string) {
+  const roomId = await RoomModel.getRoomIdByUserId(userId);
+  if (!roomId) {
+    throw new NotFoundError("User is not in a room");
+  }
+  // Retrieve all socket IDs for the room
+  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+  notifyOthers(socketIds, "gameOverByMoves", message);
+  const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+  await GameModel.addGameResults(gameRoom!.gameId, userId, "checkmate");
+}
+
+export async function informOfCheckmate(userId: number, message: string) {
+  const roomId = await RoomModel.getRoomIdByUserId(userId);
+  if (!roomId) {
+    throw new NotFoundError("User is not in a room");
+  }
+  // Retrieve all socket IDs for the room
+  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+  notifyOthers(socketIds, "checkMate", message);
+}

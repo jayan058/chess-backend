@@ -8,7 +8,11 @@ import config from "./config";
 import router from "./router";
 import errorHandler from "./middleware/errorHandler";
 import { authenticateSocket } from "./middleware/socketAuth";
-import { informOfGameOver } from "./controller/game";
+import {
+  informOfGameOver,
+  informOfCheckmate,
+  informOfGameOverByMoves,
+} from "./controller/game";
 import {
   createRoom,
   deleteRoom,
@@ -44,13 +48,9 @@ const uploadsPath = path.join(__dirname, "uploads");
 app.use("/uploads", express.static(uploadsPath));
 
 io.use(authenticateSocket);
-
 io.on("connection", (socket: ExtendedSocket) => {
   socket.on("createRoom", async ({ roomName }) => {
-   
-   
-   console.log(socket.id);
-   
+    console.log(socket.id);
 
     try {
       const userId = socket.user.id;
@@ -61,9 +61,7 @@ io.on("connection", (socket: ExtendedSocket) => {
     console.log(socket.id);
 
     try {
-    
-      
-      const userId = socket.user.id; 
+      const userId = socket.user.id;
       await joinRoom(userId, roomName, socket, socket.id);
       (socket as any).roomName = roomName;
     } catch (error) {}
@@ -83,11 +81,18 @@ io.on("connection", (socket: ExtendedSocket) => {
   });
 
   socket.on("disconnect", () => {
-   
-    
-
     const userId = socket.user.id;
-    informOfGameOver(userId,socket)
+    informOfGameOver(userId, socket,socket.id);
+    deleteRoom(userId);
+  });
+  socket.on("check", (message) => {
+    const userId = socket.user.id;
+    informOfCheckmate(userId, socket,message);
+   
+  });
+  socket.on("gameOver", (message) => {
+    const userId = socket.user.id;
+    informOfGameOverByMoves(userId, socket,message);
     deleteRoom(userId);
   });
 });

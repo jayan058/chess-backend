@@ -6,7 +6,7 @@ import { Request } from "express";
 import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 import * as gameService from "./../services/game";
 import { Participant } from "../interface/participant";
-import { startTimer, initializeRoom, resetRoom } from "../utils/timer";
+import { startTimer, resetRoom } from "../utils/timer";
 // Function to create a room
 export const createRoom = async (
   userId: number,
@@ -43,7 +43,8 @@ export async function joinRoom(
       });
       return; // Exit early to prevent further processing
     }
-
+    
+    
     let result = await roomService.joinRoom(userId, roomName, socket_id);
 
     if (result.participant.length === 2) {
@@ -55,6 +56,9 @@ export async function joinRoom(
         userId: p.userId,
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
+
+      console.log(result.participant);
+      
 
       // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
