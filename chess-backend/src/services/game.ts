@@ -57,3 +57,14 @@ export  async function createGame(participants: Participant[]) {
   }
 }
 
+
+export async function informOfGameOver(userId:number){
+  const roomId = await RoomModel.getRoomIdByUserId(userId);
+  if (!roomId) {
+    throw new Error("User is not in a room");
+  }
+  // Retrieve all socket IDs for the room
+  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+  notifyOthers(socketIds,"game-over","Oops It Looks Like Opponent has disconnected. You Win!!!!")
+}
+

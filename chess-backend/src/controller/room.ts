@@ -1,5 +1,4 @@
 import { ExtendedSocket } from "../interface/socket"; // Custom types for extended socket
-import { Server, Socket } from "socket.io";
 import * as roomService from "../services/room";
 import { io } from "..";
 import { filePathCleaner } from "../utils/filePathCleaner";
@@ -78,8 +77,6 @@ export async function joinRoom(
 
       // Notify both users that the room is full
       result.participant.forEach((p) => {
-      
-       
         io.to(p.socketId).emit("opponentConnected", {
           participants: payload,
         });
@@ -89,20 +86,17 @@ export async function joinRoom(
       setTimeout(() => {
         result.participant.forEach((p) => {
           console.log(p.socketId);
-          
-        
+
           io.to(p.socketId).emit("redirectToGame");
           io.to(p.socketId).emit("gameStarted", {
             participants: payload,
           });
         });
         payload.forEach((participant) => {
-       
           const otherParticipants = payload.filter(
             (p) => p.userId !== participant.userId
           );
           io.to(participant.socketId).emit("playerInfo", {
-            
             myId: participant.userId,
             myColor: participant.color,
             otherParticipants: otherParticipants.map((p) => ({
@@ -111,10 +105,10 @@ export async function joinRoom(
             })),
           });
         });
-      
-       setTimeout( ()=>startTimer(roomName, "white"),3000)
+
+        setTimeout(() => startTimer(roomName, "white"), 3000);
       }, 10000);
-     
+
       socket.join(roomName);
     }
   } catch (error: any) {

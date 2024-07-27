@@ -31,6 +31,7 @@ export const joinRoom = async (
 ) => {
   try {
     const room = await RoomModel.findByName(roomName);
+    console.log(room);
 
     if (room) {
       await RoomModel.addParticipant(roomName, userId, socketId);
@@ -46,9 +47,13 @@ export const joinRoom = async (
 };
 
 export async function getRoomStatus(roomName: string) {
-  const room = await RoomModel.findByName(roomName);
-  let participant = await RoomModel.getParticipants(room.id);
-  return { participant };
+  try {
+    const room = await RoomModel.findByName(roomName);
+    let participant = await RoomModel.getParticipants(room.id);
+    return { participant };
+  } catch (error) {
+    throw new NotFoundError("Room does not exist");
+  }
 }
 
 export async function deleteRoom(userId: number) {
@@ -64,8 +69,8 @@ export const broadcastTurnToRoom = async (userId: number, turn: string) => {
     }
     // Retrieve all socket IDs for the room
     const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-    
+
     // Broadcast the move to all socket IDs in the room
-    notifyOthers(socketIds,"turn", turn);
+    notifyOthers(socketIds, "turn", turn);
   } catch (error) {}
 };

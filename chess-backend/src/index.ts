@@ -8,6 +8,7 @@ import config from "./config";
 import router from "./router";
 import errorHandler from "./middleware/errorHandler";
 import { authenticateSocket } from "./middleware/socketAuth";
+import { informOfGameOver } from "./controller/game";
 import {
   createRoom,
   deleteRoom,
@@ -62,7 +63,7 @@ io.on("connection", (socket: ExtendedSocket) => {
     try {
     
       
-      const userId = socket.user.id; // Assuming socket.user is set elsewhere
+      const userId = socket.user.id; 
       await joinRoom(userId, roomName, socket, socket.id);
       (socket as any).roomName = roomName;
     } catch (error) {}
@@ -84,9 +85,9 @@ io.on("connection", (socket: ExtendedSocket) => {
   socket.on("disconnect", () => {
    
     
-    const roomName = (socket as any).roomName;
 
     const userId = socket.user.id;
+    informOfGameOver(userId,socket)
     deleteRoom(userId);
   });
 });

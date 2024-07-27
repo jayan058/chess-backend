@@ -13,3 +13,13 @@ export const handleMove = async (userId:number, move:string,socket:ExtendedSocke
 };
 
 
+export const informOfGameOver = async (userId:number,socket:ExtendedSocket) => {
+    try {
+        await gameService.informOfGameOver(userId);
+    } catch (error) {
+        console.error('Error handling move:', error);
+        socket.emit('error', 'Failed to handle move');
+    }
+};
+
+
