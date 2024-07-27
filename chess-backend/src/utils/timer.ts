@@ -47,8 +47,8 @@ function handleTimeOut(roomName: string, color: "white" | "black") {
 
 export function initializeRoom(roomName: string) {
   roomTimers[roomName] = {
-    whiteTime: 10, // 10 minutes in seconds
-    blackTime: 10,
+    whiteTime: 600, // 10 minutes in seconds
+    blackTime: 600,
     interval: null,
   };
 }

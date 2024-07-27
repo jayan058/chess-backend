@@ -72,5 +72,7 @@ export const broadcastTurnToRoom = async (userId: number, turn: string) => {
 
     // Broadcast the move to all socket IDs in the room
     notifyOthers(socketIds, "turn", turn);
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 };

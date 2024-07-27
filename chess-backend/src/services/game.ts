@@ -41,6 +41,7 @@ export const notifyOthers = (socketIds: string[], event: string, data: any) => {
 };
 
 export async function createGame(participants: Participant[]) {
+  try{
   if (participants.length < 2) {
     throw new Error("Not enough participants to create a game.");
   }
@@ -55,8 +56,10 @@ export async function createGame(participants: Participant[]) {
     start_time: new Date(),
   };
   GameModel.createGame(newGame);
-  try {
-  } catch (error) {}
+  }
+  catch(error){
+    
+  }
 }
 
 export async function informOfGameOver(

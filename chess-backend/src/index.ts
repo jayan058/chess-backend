@@ -79,22 +79,24 @@ io.on("connection", (socket: ExtendedSocket) => {
       await handleTurn(userId, turn, socket);
     } catch (error) {}
   });
-
-  socket.on("disconnect", () => {
+  socket.on("check", async (message) => {
     const userId = socket.user.id;
-    informOfGameOver(userId, socket,socket.id);
-    deleteRoom(userId);
-  });
-  socket.on("check", (message) => {
-    const userId = socket.user.id;
-    informOfCheckmate(userId, socket,message);
+    await informOfCheckmate(userId, socket,message);
    
   });
-  socket.on("gameOver", (message) => {
+ 
+ 
+  socket.on("gameOver", async(message) => {
     const userId = socket.user.id;
-    informOfGameOverByMoves(userId, socket,message);
+    await informOfGameOverByMoves(userId, socket,message);
     deleteRoom(userId);
-  });
+  }); 
+  socket.on("disconnect",async () => {
+    const userId = socket.user.id;
+    await informOfGameOver(userId, socket,socket.id);
+   await deleteRoom(userId);
+  }); 
+ 
 });
 
 server.listen(config.port, () => {
