@@ -7,7 +7,7 @@ import { ExtendedSocket } from '.././interface/socket';
 // Socket.IO middleware for authentication
 export function authenticateSocket(socket: ExtendedSocket, next: (err?: any) => void) { 
 
-     console.log(socket.handshake.auth?.token);
+   
      
   const token = socket.handshake.auth?.token;  
   

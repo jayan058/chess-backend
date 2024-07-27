@@ -48,6 +48,8 @@ io.on("connection", (socket: ExtendedSocket) => {
   socket.on("createRoom", async ({ roomName }) => {
    
    
+   console.log(socket.id);
+   
 
     try {
       const userId = socket.user.id;
@@ -55,8 +57,11 @@ io.on("connection", (socket: ExtendedSocket) => {
     } catch (error) {}
   });
   socket.on("joinRoom", async ({ roomName }) => {
+    console.log(socket.id);
+
     try {
     
+      
       const userId = socket.user.id; // Assuming socket.user is set elsewhere
       await joinRoom(userId, roomName, socket, socket.id);
       (socket as any).roomName = roomName;

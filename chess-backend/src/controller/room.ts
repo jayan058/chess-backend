@@ -8,7 +8,6 @@ import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 import * as gameService from "./../services/game";
 import { Participant } from "../interface/participant";
 import { startTimer, initializeRoom, resetRoom } from "../utils/timer";
-
 // Function to create a room
 export const createRoom = async (
   userId: number,
@@ -25,7 +24,9 @@ export const createRoom = async (
     socket.emit("roomExists", { roomName: roomName });
   }
 };
-export const roomTimers: { [roomName: string]: { whiteTime: number, blackTime: number, interval: any } } = {};
+export const roomTimers: {
+  [roomName: string]: { whiteTime: number; blackTime: number; interval: any };
+} = {};
 
 export async function joinRoom(
   userId: number,
@@ -55,8 +56,7 @@ export async function joinRoom(
         userId: p.userId,
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
-    
-      
+
       // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
       // Initialize timers for the room
@@ -78,6 +78,8 @@ export async function joinRoom(
 
       // Notify both users that the room is full
       result.participant.forEach((p) => {
+      
+       
         io.to(p.socketId).emit("opponentConnected", {
           participants: payload,
         });
@@ -86,18 +88,20 @@ export async function joinRoom(
       // Introduce a short delay before redirecting to the game
       setTimeout(() => {
         result.participant.forEach((p) => {
+          console.log(p.socketId);
+          
+        
           io.to(p.socketId).emit("redirectToGame");
           io.to(p.socketId).emit("gameStarted", {
             participants: payload,
           });
         });
         payload.forEach((participant) => {
-
+       
           const otherParticipants = payload.filter(
             (p) => p.userId !== participant.userId
           );
           io.to(participant.socketId).emit("playerInfo", {
-            
             
             myId: participant.userId,
             myColor: participant.color,
@@ -107,9 +111,10 @@ export async function joinRoom(
             })),
           });
         });
-        startTimer(roomName, "white");
+      
+       setTimeout( ()=>startTimer(roomName, "white"),3000)
       }, 10000);
-
+     
       socket.join(roomName);
     }
   } catch (error: any) {
