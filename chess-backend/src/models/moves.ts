@@ -17,4 +17,19 @@ export default class MovesModel extends BaseModel {
       throw error;
     }
   }
+
+  static async getLastestFen(gameId:number){
+    const result = await this.queryBuilder()
+    .select('fen')
+    .from('moves')
+    .where('game_id', gameId)
+    .orderBy('created_at', 'desc') // Assuming you have a 'created_at' column
+    .first(); // Get the most recent move
+
+  return result ? result.fen : null;
+  }
+
+
+
+
 }

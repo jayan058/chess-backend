@@ -155,8 +155,10 @@ export const  addWatcherToRoom=async(
 )=> {
   try {
      
-    roomService.addWatcher(roomName,userId,socketId,"watcher")
-
+    let lastestFen=await roomService.addWatcher(roomName,userId,socketId,"watcher")
+    console.log(lastestFen);
+    setTimeout(()=>  io.to(socketId).emit("latestFen",lastestFen),2000)
+  
     } catch (error) {
        
   }
