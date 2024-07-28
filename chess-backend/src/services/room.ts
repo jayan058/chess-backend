@@ -6,7 +6,8 @@ import { notifyOthers } from "./game";
 export async function createNewRoom(
   roomName: string,
   userId: number,
-  socketId: string
+  socketId: string,
+  role:string
 ) {
   try {
     // Check if the room already exists
@@ -18,7 +19,7 @@ export async function createNewRoom(
 
     // If the room does not exist, create a new room
     await RoomModel.create(roomName, userId);
-    await RoomModel.addParticipant(roomName, userId, socketId);
+    await RoomModel.addParticipant(roomName, userId, socketId,role);
   } catch (error) {
     throw error;
   }
@@ -27,14 +28,15 @@ export async function createNewRoom(
 export const joinRoom = async (
   userId: number,
   roomName: string,
-  socketId: string
+  socketId: string,
+  role:string
 ) => {
   try {
     const room = await RoomModel.findByName(roomName);
-    console.log(room);
+   
 
     if (room) {
-      await RoomModel.addParticipant(roomName, userId, socketId);
+      await RoomModel.addParticipant(roomName, userId, socketId,role);
       let participant = await RoomModel.getParticipants(room.id);
 
       return { success: true, roomName, participant };
@@ -85,4 +87,15 @@ export async function  updateRoomStatus(roomName:string){
 
 export async function getActiveRooms(){
   return await RoomModel.getActiveRooms()
+}
+
+
+export async function addWatcher(roomName: string,
+  userId: number,
+  socketId: string,
+  role:string){
+    console.log(roomName);
+    
+    await RoomModel.addParticipant(roomName, userId, socketId,role);
+
 }

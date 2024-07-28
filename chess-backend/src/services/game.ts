@@ -29,9 +29,7 @@ export const broadcastMoveToRoom = async (
     const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
     await MovesModel.saveMove(move, gameRoom?.gameId!);
     startTimer(roomName.roomName, nextColor);
-  } catch (error) {
-
-  }
+  } catch (error) {}
 };
 
 export const notifyOthers = (socketIds: string[], event: string, data: any) => {
@@ -41,25 +39,22 @@ export const notifyOthers = (socketIds: string[], event: string, data: any) => {
 };
 
 export async function createGame(participants: Participant[]) {
-  try{
-  if (participants.length < 2) {
-    throw new Error("Not enough participants to create a game.");
-  }
+  try {
+    if (participants.length < 2) {
+      throw new Error("Not enough participants to create a game.");
+    }
 
-  const whitePlayer = participants[0];
-  const blackPlayer = participants[1];
+    const whitePlayer = participants[0];
+    const blackPlayer = participants[1];
 
-  const newGame = {
-    white_player_id: whitePlayer.userId,
-    black_player_id: blackPlayer.userId,
-    room_id: whitePlayer.roomId,
-    start_time: new Date(),
-  };
-  GameModel.createGame(newGame);
-  }
-  catch(error){
-    
-  }
+    const newGame = {
+      white_player_id: whitePlayer.userId,
+      black_player_id: blackPlayer.userId,
+      room_id: whitePlayer.roomId,
+      start_time: new Date(),
+    };
+    GameModel.createGame(newGame);
+  } catch (error) {}
 }
 
 export async function informOfGameOver(
@@ -95,8 +90,8 @@ export async function informOfGameOverByMove(userId: number, message: string) {
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "gameOverByMoves", message);
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-  console.log(gameRoom);
-  
+
+
   await GameModel.addGameResults(gameRoom!.id, userId, "checkmate");
 }
 
@@ -110,17 +105,17 @@ export async function informOfCheckmate(userId: number, message: string) {
   notifyOthers(socketIds, "checkMate", message);
 }
 
-export async function gameOverByTimeout(roomName:string,lossingColor:string) {
-   let roomId=await RoomModel.getRoomIdByName(roomName)
-   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-   const losingColorId = lossingColor === "white" ? gameRoom.whitePlayerId :gameRoom.blackPlayerId;
-   
-   await GameModel.addGameResults(gameRoom!.id, losingColorId, "timeout");
-   await deleteRoom(losingColorId)
- 
-
-  
+export async function gameOverByTimeout(
+  roomName: string,
+  lossingColor: string
+) {
+  let roomId = await RoomModel.getRoomIdByName(roomName);
+  if (!roomId) {
+    throw new NotFoundError("Room with that ID doesnot exist");
+  }
+  const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+  const losingColorId =
+    lossingColor === "white" ? gameRoom.whitePlayerId : gameRoom.blackPlayerId;
+  await GameModel.addGameResults(gameRoom!.id, losingColorId, "timeout");
+  await deleteRoom(losingColorId);
 }
-
-
-

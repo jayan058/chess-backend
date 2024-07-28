@@ -51,7 +51,8 @@ export default class RoomModel extends BaseModel {
   static async addParticipant(
     roomName: string,
     userId: number,
-    sockeId: string
+    sockeId: string,
+    role:string
   ) {
     // Find the room by name
     const room = await this.findByName(roomName);
@@ -67,6 +68,7 @@ export default class RoomModel extends BaseModel {
         user_id: userId,
         joined_at: new Date(),
         socket_id: sockeId,
+        role:role
       })
       .into("room_participants");
   }
@@ -141,7 +143,7 @@ export default class RoomModel extends BaseModel {
       .from("room_participants")
       .where("room_participants.room_id", roomId)
       .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
-    console.log(userIds);
+    
 
     return userIds;
   }
@@ -152,7 +154,7 @@ export default class RoomModel extends BaseModel {
       .where("room_name", roomName)
       .first(); // Fetch the first result only
 
-    return room.id;
+      return room?.id ?? null;
   }
 
 

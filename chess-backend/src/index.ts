@@ -18,6 +18,7 @@ import {
   deleteRoom,
   joinRoom,
   handleTurn,
+  addWatcherToRoom
 } from "./controller/room";
 import { ExtendedSocket } from "./interface/socket";
 import * as gameController from "./controller/game";
@@ -50,7 +51,7 @@ app.use("/uploads", express.static(uploadsPath));
 io.use(authenticateSocket);
 io.on("connection", (socket: ExtendedSocket) => {
   socket.on("createRoom", async ({ roomName }) => {
-    console.log(socket.id);
+
 
     try {
       const userId = socket.user.id;
@@ -58,7 +59,7 @@ io.on("connection", (socket: ExtendedSocket) => {
     } catch (error) {}
   });
   socket.on("joinRoom", async ({ roomName }) => {
-    console.log(socket.id);
+    
 
     try {
       const userId = socket.user.id;
@@ -90,6 +91,14 @@ io.on("connection", (socket: ExtendedSocket) => {
     const userId = socket.user.id;
     await informOfGameOverByMoves(userId, socket,message);
     deleteRoom(userId);
+  }); 
+
+  socket.on("watchGame", async(roomName) => {
+    console.log(roomName);
+    
+    const userId = socket.user.id;
+    await addWatcherToRoom(userId, roomName, socket, socket.id);
+
   }); 
   socket.on("disconnect",async () => {
     const userId = socket.user.id;

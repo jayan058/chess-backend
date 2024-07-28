@@ -17,7 +17,7 @@ export const createRoom = async (
   socket_id: string
 ) => {
   try {
-    await roomService.createNewRoom(roomName, userId, socket_id);
+    await roomService.createNewRoom(roomName, userId, socket_id,"player");
     socket.join(roomName);
     socket.emit("roomCreated", { roomName: roomName });
   } catch (error) {
@@ -46,7 +46,7 @@ export async function joinRoom(
       return; // Exit early to prevent further processing
     }
 
-    let result = await roomService.joinRoom(userId, roomName, socket_id);
+    let result = await roomService.joinRoom(userId, roomName, socket_id,"player");
     await roomService.updateRoomStatus(roomName);
     if (result.participant.length === 2) {
       const payload = result.participant.map((p, index) => ({
@@ -58,7 +58,7 @@ export async function joinRoom(
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
 
-      console.log(result.participant);
+    
 
       // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
@@ -79,7 +79,7 @@ export async function joinRoom(
       // Introduce a short delay before redirecting to the game
       setTimeout(() => {
         result.participant.forEach((p) => {
-          console.log(p.socketId);
+       
 
           io.to(p.socketId).emit("redirectToGame");
           io.to(p.socketId).emit("gameStarted", {
@@ -136,10 +136,27 @@ export const  getActiveRooms=async(
   try {
     const rooms = await roomService.getActiveRooms();
     res.json(rooms)
-    console.log(rooms);
+   
     
 
     } catch (error) {
     next(error);
+  }
+}
+
+
+
+export const  addWatcherToRoom=async(
+  userId: number,
+  roomName: string,
+  socket: ExtendedSocket,
+  socketId: string,
+)=> {
+  try {
+     
+    roomService.addWatcher(roomName,userId,socketId,"watcher")
+
+    } catch (error) {
+      socket.emit("addWatcherToRoomError", { message: "Unable to add watcher to room" });
   }
 }
