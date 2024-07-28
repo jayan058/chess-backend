@@ -23,10 +23,13 @@ export default class RoomModel extends BaseModel {
   }
 
   // Update room status
-  static async updateStatus(roomName:string) {
-    await this.queryBuilder().table("rooms").where("room_name", roomName).update({
-      status: "active",
-    });
+  static async updateStatus(roomName: string) {
+    await this.queryBuilder()
+      .table("rooms")
+      .where("room_name", roomName)
+      .update({
+        status: "active",
+      });
   }
 
   // Get all rooms
@@ -51,8 +54,8 @@ export default class RoomModel extends BaseModel {
   static async addParticipant(
     roomName: string,
     userId: number,
-    sockeId: string,
-    role:string
+    socketId: string,
+    role: string
   ) {
     // Find the room by name
     const room = await this.findByName(roomName);
@@ -67,8 +70,8 @@ export default class RoomModel extends BaseModel {
         room_id: room.id,
         user_id: userId,
         joined_at: new Date(),
-        socket_id: sockeId,
-        role:role
+        socket_id: socketId,
+        role: role,
       })
       .into("room_participants");
   }
@@ -143,7 +146,6 @@ export default class RoomModel extends BaseModel {
       .from("room_participants")
       .where("room_participants.room_id", roomId)
       .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
-    
 
     return userIds;
   }
@@ -154,12 +156,43 @@ export default class RoomModel extends BaseModel {
       .where("room_name", roomName)
       .first(); // Fetch the first result only
 
-      return room?.id ?? null;
+    return room?.id ?? null;
   }
 
-
-  static async getActiveRooms(){
-    const rooms = await this.queryBuilder().select("room_name").from("rooms").where({ status: 'active' });
+  static async getActiveRooms() {
+    const rooms = await this.queryBuilder()
+      .select("room_name")
+      .from("rooms")
+      .where({ status: "active" });
     return rooms;
+  }
+
+  static async getRoleOfUser(userId: number): Promise<string> {
+    const result = await this.queryBuilder()
+      .select("role")
+      .from("room_participants")
+      .where("user_id", userId);
+
+    return result[0].role;
+  }
+
+  static async deleteParticipant(userId: number) {
+    await this.queryBuilder()
+      .delete()
+      .from("room_participants")
+      .where("user_id", userId);
+  }
+
+  static async checkIfUserIsInRoom(userId: number, roomId: number) {
+    const existingParticipant = await this.queryBuilder()
+      .select("user_id")
+      .from("room_participants")
+      .where({
+        user_id: userId,
+        room_id: roomId,
+      });
+  
+
+    return existingParticipant;
   }
 }

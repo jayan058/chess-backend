@@ -65,12 +65,14 @@ io.on("connection", (socket: ExtendedSocket) => {
       const userId = socket.user.id;
       await joinRoom(userId, roomName, socket, socket.id);
       (socket as any).roomName = roomName;
-    } catch (error) {}
+    } catch (error) {
+
+    }
   });
-  socket.on("move", async (move, playerId, color) => {
+  socket.on("move", async (move, playerId, color,boardFen) => {
     try {
       const userId = socket.user.id;
-      await gameController.handleMove(userId, move, socket, color);
+      await gameController.handleMove(userId, move, socket, color,boardFen);
     } catch (error) {}
   });
 
@@ -94,17 +96,15 @@ io.on("connection", (socket: ExtendedSocket) => {
   }); 
 
   socket.on("watchGame", async(roomName) => {
-    console.log(roomName);
-    
-    const userId = socket.user.id;
+        const userId = socket.user.id;
     await addWatcherToRoom(userId, roomName, socket, socket.id);
 
   }); 
   socket.on("disconnect",async () => {
     const userId = socket.user.id;
     await informOfGameOver(userId, socket,socket.id);
-   await deleteRoom(userId);
-  }); 
+   
+  });
  
 });
 

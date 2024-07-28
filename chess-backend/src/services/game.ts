@@ -12,7 +12,8 @@ import { deleteRoom } from "./room";
 export const broadcastMoveToRoom = async (
   userId: number,
   move: Move,
-  color: string
+  color: string,
+  boardFen:string
 ) => {
   try {
     // Get the room ID for the current user's socket ID
@@ -26,8 +27,8 @@ export const broadcastMoveToRoom = async (
     notifyOthers(socketIds, "move", move);
     const nextColor = color === "white" ? "black" : "white"; // Switch turn color
     let roomName = await RoomModel.getRoomByNameAndId(roomId);
-    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-    await MovesModel.saveMove(move, gameRoom?.gameId!);
+    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);    
+    await MovesModel.saveMove(move, gameRoom.id,boardFen);
     startTimer(roomName.roomName, nextColor);
   } catch (error) {}
 };
@@ -65,8 +66,11 @@ export async function informOfGameOver(
   if (!roomId) {
     throw new NotFoundError("User is not in a room");
   }
-  // Retrieve all socket IDs for the room
-  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+     
+  const roleofUser=await RoomModel.getRoleOfUser(userId)
+
+  if(roleofUser=='player'){
+     const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(
     socketIds,
     "game-over",
@@ -79,6 +83,17 @@ export async function informOfGameOver(
     winnerId[0].userId,
     "disconnect"
   );
+  RoomModel.deleteRoom(userId)
+  }
+
+  else{
+  await  RoomModel.deleteParticipant(userId)
+  }
+
+
+
+  // Retrieve all socket IDs for the room
+  
 }
 
 export async function informOfGameOverByMove(userId: number, message: string) {

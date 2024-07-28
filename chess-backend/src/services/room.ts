@@ -2,6 +2,7 @@ import RoomModel from "../models/room"; // Adjust the import path as necessary
 import ConflictError from "../error/conflictError";
 import NotFoundError from "../error/notFoundError";
 import { notifyOthers } from "./game";
+import { threadId } from "worker_threads";
 
 export async function createNewRoom(
   roomName: string,
@@ -94,8 +95,15 @@ export async function addWatcher(roomName: string,
   userId: number,
   socketId: string,
   role:string){
-    console.log(roomName);
-    
-    await RoomModel.addParticipant(roomName, userId, socketId,role);
+      try{
+       let roomId=await RoomModel.getRoomIdByName(roomName)
+       let isUserInRoom=await RoomModel.checkIfUserIsInRoom(userId,roomId)
+      if(isUserInRoom.length==0){
+        await RoomModel.addParticipant(roomName, userId, socketId,role);
+      }
+    }
+      catch(error){
+        throw new ConflictError("User Is Already In The Room")
+      }
+      }
 
-}

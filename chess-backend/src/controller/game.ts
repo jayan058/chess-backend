@@ -8,10 +8,11 @@ export const handleMove = async (
   userId: number,
   move: Move,
   socket: ExtendedSocket,
-  color: string
+  color: string,
+  boardFen:string
 ) => {
   try {
-    await gameService.broadcastMoveToRoom(userId, move, color);
+    await gameService.broadcastMoveToRoom(userId, move, color,boardFen);
   } catch (error) {
     console.error("Error handling move:", error);
     socket.emit("error", "Failed to handle move");

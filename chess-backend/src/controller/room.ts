@@ -151,12 +151,13 @@ export const  addWatcherToRoom=async(
   roomName: string,
   socket: ExtendedSocket,
   socketId: string,
+  
 )=> {
   try {
      
     roomService.addWatcher(roomName,userId,socketId,"watcher")
 
     } catch (error) {
-      socket.emit("addWatcherToRoomError", { message: "Unable to add watcher to room" });
+       
   }
 }
