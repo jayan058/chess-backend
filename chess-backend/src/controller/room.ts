@@ -2,11 +2,13 @@ import { ExtendedSocket } from "../interface/socket"; // Custom types for extend
 import * as roomService from "../services/room";
 import { io } from "..";
 import { filePathCleaner } from "../utils/filePathCleaner";
-import { Request } from "express";
-import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 import * as gameService from "./../services/game";
 import { Participant } from "../interface/participant";
 import { startTimer, resetRoom } from "../utils/timer";
+import { mockReq } from "../utils/mockRequest";
+import { AuthenticatedRequest } from "../interface/authenticatedRequest";
+import { Request,Response } from "express";
+import { NextFunction } from "express";
 // Function to create a room
 export const createRoom = async (
   userId: number,
@@ -43,10 +45,9 @@ export async function joinRoom(
       });
       return; // Exit early to prevent further processing
     }
-    
-    
-    let result = await roomService.joinRoom(userId, roomName, socket_id);
 
+    let result = await roomService.joinRoom(userId, roomName, socket_id);
+    await roomService.updateRoomStatus(roomName);
     if (result.participant.length === 2) {
       const payload = result.participant.map((p, index) => ({
         socketId: p.socketId,
@@ -58,23 +59,12 @@ export async function joinRoom(
       }));
 
       console.log(result.participant);
-      
 
       // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
       // Initialize timers for the room
       const participants: Participant[] = result.participant;
       gameService.createGame(participants);
-
-      const mockReq = {
-        protocol: "http",
-        get: (header: string) => {
-          if (header === "host") {
-            return "localhost:3000"; // Example host
-          }
-          return undefined;
-        },
-      } as Request<any, any, { user: AuthenticatedRequest }>;
 
       // Clean the file paths for each participant
       payload.forEach((participant) => filePathCleaner(participant, mockReq));
@@ -137,3 +127,19 @@ export const handleTurn = async (
     socket.emit("error", "Failed to handle turn");
   }
 };
+
+export const  getActiveRooms=async(
+  req: Request,
+  res: Response,
+  next: NextFunction
+)=> {
+  try {
+    const rooms = await roomService.getActiveRooms();
+    res.json(rooms)
+    console.log(rooms);
+    
+
+    } catch (error) {
+    next(error);
+  }
+}

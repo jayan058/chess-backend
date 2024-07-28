@@ -23,10 +23,9 @@ export default class RoomModel extends BaseModel {
   }
 
   // Update room status
-  static async updateStatus(roomId: number, status: string) {
-    await this.queryBuilder().table("rooms").where("id", roomId).update({
-      status: status,
-      updated_at: new Date(),
+  static async updateStatus(roomName:string) {
+    await this.queryBuilder().table("rooms").where("room_name", roomName).update({
+      status: "active",
     });
   }
 
@@ -45,10 +44,9 @@ export default class RoomModel extends BaseModel {
       .join("users", "room_participants.user_id", "users.id")
       .where("room_participants.room_id", roomId)
       .orderBy("room_participants.joined_at", "asc"); // Adding the ORDER BY clause
-  
+
     return participants;
   }
-  
 
   static async addParticipant(
     roomName: string,
@@ -94,75 +92,72 @@ export default class RoomModel extends BaseModel {
   }
 
   static async deleteRoom(userId: number) {
-   
     const roomsToDelete = await this.queryBuilder()
-    .select("room_id")
-    .from("room_participants")
-    .where("user_id", userId)
-    .first();
-  if(!roomsToDelete){
-    return;
-  }
-  // //   // Extract room IDs from the results
-
-  // //   // Delete all rows with the specified userId from room_participants
-  await this.queryBuilder()
-    .from("room_participants")
-    .where("user_id", userId)
-    .delete();
-
-  //   // Delete all rows from room_participants with the same room_id as the userId
-  await this.queryBuilder()
-    .from("room_participants")
-    .where("room_id", roomsToDelete.roomId)
-    .delete();
-
-  // // // Step 4: Delete the room with the specified room_id
-  await this.queryBuilder()
-    .from("rooms")
-    .where("id", roomsToDelete.roomId)
-    .delete();
-}
-
-static async getRoomByNameAndId(roomId: string) {
-  try {
-    const room = await this.queryBuilder()
-      .select('*')
-      .from('rooms')
-      .where('id', roomId)
+      .select("room_id")
+      .from("room_participants")
+      .where("user_id", userId)
       .first();
-    return room;
-  } catch (error) {
-    console.error('Error fetching room by name and ID:', error);
-    throw error;
+    if (!roomsToDelete) {
+      return;
+    }
+    // //   // Extract room IDs from the results
+
+    // //   // Delete all rows with the specified userId from room_participants
+    await this.queryBuilder()
+      .from("room_participants")
+      .where("user_id", userId)
+      .delete();
+
+    //   // Delete all rows from room_participants with the same room_id as the userId
+    await this.queryBuilder()
+      .from("room_participants")
+      .where("room_id", roomsToDelete.roomId)
+      .delete();
+
+    // // // Step 4: Delete the room with the specified room_id
+    await this.queryBuilder()
+      .from("rooms")
+      .where("id", roomsToDelete.roomId)
+      .delete();
+  }
+
+  static async getRoomByNameAndId(roomId: string) {
+    try {
+      const room = await this.queryBuilder()
+        .select("*")
+        .from("rooms")
+        .where("id", roomId)
+        .first();
+      return room;
+    } catch (error) {
+      console.error("Error fetching room by name and ID:", error);
+      throw error;
+    }
+  }
+
+  static async getOtherUserInRoom(userId: number, roomId: number) {
+    const userIds = await this.queryBuilder()
+      .select("user_id")
+      .from("room_participants")
+      .where("room_participants.room_id", roomId)
+      .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
+    console.log(userIds);
+
+    return userIds;
+  }
+  static async getRoomIdByName(roomName: string) {
+    const room = await this.queryBuilder()
+      .select("id")
+      .from("rooms")
+      .where("room_name", roomName)
+      .first(); // Fetch the first result only
+
+    return room.id;
+  }
+
+
+  static async getActiveRooms(){
+    const rooms = await this.queryBuilder().select("room_name").from("rooms").where({ status: 'active' });
+    return rooms;
   }
 }
-
-
-static async getOtherUserInRoom(userId:number,roomId:number){
-  const userIds = await this.queryBuilder()
-  .select("user_id")
-  .from("room_participants")
-  .where("room_participants.room_id", roomId)
-  .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
-  console.log(userIds);
-  
-
-return userIds;
-}
-static async getRoomIdByName(roomName: string) {
-  const room = await this.queryBuilder()
-    .select("id")
-    .from("rooms")
-    .where("room_name", roomName)
-    .first(); // Fetch the first result only
-
-  return room.id;
-}
-
-
-
-    }
-    
-  
-

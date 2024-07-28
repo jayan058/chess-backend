@@ -34,6 +34,8 @@ export default class Game extends BaseModel {
             .into('game_results');
        
       }
+
+   
     
 
 

@@ -76,3 +76,13 @@ export const broadcastTurnToRoom = async (userId: number, turn: string) => {
     throw error;
   }
 };
+
+
+
+export async function  updateRoomStatus(roomName:string){
+ RoomModel.updateStatus(roomName)  
+}
+
+export async function getActiveRooms(){
+  return await RoomModel.getActiveRooms()
+}

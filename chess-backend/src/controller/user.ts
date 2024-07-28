@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "../interface/user";
 import * as userServices from "./../services/user"; 
 import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 import getRelativeFilePath from "../utils/getRelativeFilePath";
@@ -7,7 +6,7 @@ import { UserDetails } from "../interface/userDetails";
 import { filePathCleaner } from "../utils/filePathCleaner";
 
 export async function createUser(
-    req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> { 

@@ -21,12 +21,12 @@ import {
 } from "./controller/room";
 import { ExtendedSocket } from "./interface/socket";
 import * as gameController from "./controller/game";
-// import { roomTimers } from "./controller/room";
+
 
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your client URL
+    origin: "http://localhost:5173", 
     credentials: true,
   })
 );
