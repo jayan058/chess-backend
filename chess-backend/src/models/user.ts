@@ -28,5 +28,15 @@ export class UserModel extends BaseModel {
       }
 
 
+      static async findById(id:number) {
+        let matchingUser = await this.queryBuilder()
+          .select("*")
+          .from("users")
+          .where("id", id);
+    
+        return matchingUser;
+      }
+
+
 
 }

@@ -5,7 +5,8 @@ import { notifyOthers } from "./game";
 import GameModel from "./../models/game";
 import MovesModel from "../models/moves";
 import { Message } from "../interface/message";
-
+import ChatModel from "../models/messages";
+import { UserModel } from "../models/user";
 export async function createNewRoom(
   roomName: string,
   userId: number,
@@ -95,22 +96,30 @@ export async function addWatcher(
   try {
     let roomId = await RoomModel.getRoomIdByName(roomName);
     let isUserInRoom = await RoomModel.checkIfUserIsInRoom(userId, roomId);
+    let participants=await RoomModel.getParticipants(roomId)
     if (isUserInRoom.length == 0) {
       await RoomModel.addParticipant(roomName, userId, socketId, role);
     }
 
     let gameRoom = await GameModel.getGameRoomByRoomId(roomId);
     let latestFen = await MovesModel.getLastestFen(gameRoom!.id);
-    return latestFen;
+    let messages=await RoomModel.getAllMessagesOfARoom(gameRoom!.id)
+    let user=await UserModel.findById(userId)
+
+    return {latestFen,messages,user,participants};
   } catch (error) {
     throw new ConflictError("User Is Already In The Room");
   }
 }
 
 export async function sendMessage(message: Message, userId: number) {
-  try{
-  const socketIds = await RoomModel.getSocketIdsByRoomId(message.roomId);
-  notifyOthers(socketIds, "message", message);
+  try{  
+  const socketIds = await RoomModel.getSocketIdsByRoomId(message.roomId!);
+  notifyOthers(socketIds, "message",message );
+  let gameRoom=await GameModel.getGameRoomByRoomId(message.roomId!)
+  ChatModel.InsertMessage(message.content!,gameRoom.id,userId,message.roomId!,message.timestamp!
+  )
+
   }
   catch(error){
   }

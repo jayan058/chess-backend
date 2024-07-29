@@ -126,11 +126,20 @@ export async function gameOverByTimeout(
 ) {
   let roomId = await RoomModel.getRoomIdByName(roomName);
   if (!roomId) {
-    throw new NotFoundError("Room with that ID doesnot exist");
+    return ;
   }
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
   const losingColorId =
     lossingColor === "white" ? gameRoom.whitePlayerId : gameRoom.blackPlayerId;
   await GameModel.addGameResults(gameRoom!.id, losingColorId, "timeout");
   await deleteRoom(losingColorId);
+}
+
+
+export async function notifyAudienceOfTimeOut(roomName:string,message:string){
+  let roomId=await RoomModel.getRoomIdByName(roomName)
+  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+  notifyOthers(socketIds, "timeOutNotifyForAudience", message);
+  
+
 }

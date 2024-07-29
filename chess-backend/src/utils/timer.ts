@@ -1,7 +1,7 @@
 import { io } from "..";
 import { roomTimers } from "../controller/room";
 import { gameOverByTimeout, notifyOthers } from "../services/game";
-
+import { notifyAudienceOfTimeOut } from "../controller/game";
 export function startTimer(roomName: string, color: "white" | "black") {
   const room = roomTimers[roomName];
   if (!room) return; // Ensure room exists
@@ -39,11 +39,14 @@ export function startTimer(roomName: string, color: "white" | "black") {
   }, 1000);
 }
 
-function handleTimeOut(roomName: string, color: "white" | "black") {
+async function handleTimeOut(roomName: string, color: "white" | "black") {
+
+
   const losingColor = color;
   const winningColor = color === "white" ? "black" : "white";
   const message = `Looks like it's timeout for ${losingColor}. Sorry ${losingColor}, you lose by timeout. Congrats ${winningColor}, you win by timeout!`;
   io.to(roomName).emit("timeOut", message);
+  await notifyAudienceOfTimeOut(roomName,`${losingColor} LOST THE GAME BY TIMEOUT`)
   gameOverByTimeout(roomName,winningColor)
 }
 

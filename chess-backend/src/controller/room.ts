@@ -153,14 +153,23 @@ export const addWatcherToRoom = async (
   socketId: string
 ) => {
   try {
-    let lastestFen = await roomService.addWatcher(
+    let latestData = await roomService.addWatcher(
       roomName,
       userId,
       socketId,
       "watcher"
     );
-    console.log(lastestFen);
-    setTimeout(() => io.to(socketId).emit("latestFen", lastestFen), 2000);
+   
+    setTimeout(() => io.to(socketId).emit("latestData", latestData), 5000);
+    console.log(latestData);
+    latestData.messages.forEach(message => {
+      filePathCleaner(message, mockReq);
+  });
+
+  latestData.participants.forEach(participant=>{
+    filePathCleaner(participant,mockReq)
+  })
+
   } catch (error) {
 
   }
@@ -172,7 +181,7 @@ export async function sendMessage(message:Message,userId:number){
   await roomService.sendMessage(message,userId)
   }
   catch(error){
-    
+
   }
      
 }

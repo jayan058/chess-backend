@@ -1,7 +1,7 @@
 import * as gameService from "./../services/game";
 import { ExtendedSocket } from "../interface/socket";
 import { Move } from "../interface/Move";
-import { string } from "joi";
+import { func, string } from "joi";
 
 // Function to handle broadcasting a move
 export const handleMove = async (
@@ -66,4 +66,15 @@ export const gameOverByTimOut = async (
       
     }
   };
+
+
+
+  export async function notifyAudienceOfTimeOut(roomName:string,message:string){
+    try{
+     await gameService.notifyAudienceOfTimeOut(roomName,message)
+    }
+    catch(error){
+
+    }
+  }
 

@@ -1,3 +1,4 @@
+import { Message } from "../interface/message";
 import BaseModel from "./baseModel";
 
 export default class RoomModel extends BaseModel {
@@ -191,8 +192,27 @@ export default class RoomModel extends BaseModel {
         user_id: userId,
         room_id: roomId,
       });
-  
 
     return existingParticipant;
+  }
+
+
+    static async getAllMessagesOfARoom(gameId: number):Promise<Message []> {
+      console.log("Hello");
+      
+      const messages = await this.queryBuilder()
+        .select("*")
+        .from("chat")
+        .join("users", "chat.sender_id", "users.id")
+        .where("chat.game_id", gameId)
+        .orderBy("chat.created_at", "asc");
+    
+
+      console.log(messages);
+        
+      return messages as Message [];
+    
+    
+
   }
 }
