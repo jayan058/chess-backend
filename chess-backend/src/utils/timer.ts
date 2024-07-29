@@ -1,6 +1,6 @@
 import { io } from "..";
 import { roomTimers } from "../controller/room";
-import { gameOverByTimeout } from "../services/game";
+import { gameOverByTimeout, notifyOthers } from "../services/game";
 
 export function startTimer(roomName: string, color: "white" | "black") {
   const room = roomTimers[roomName];
@@ -14,6 +14,7 @@ export function startTimer(roomName: string, color: "white" | "black") {
   room.interval = setInterval(() => {
     if (color === "white") {
       room.whiteTime--;
+
       io.to(roomName).emit("timerUpdate", {
         color: "white",
         time: room.whiteTime,
@@ -28,6 +29,7 @@ export function startTimer(roomName: string, color: "white" | "black") {
         color: "black",
         time: room.blackTime,
       });
+    
       if (room.blackTime <= 0) {
 
         clearInterval(room.interval);

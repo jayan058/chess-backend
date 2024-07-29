@@ -2,27 +2,25 @@ import RoomModel from "../models/room"; // Adjust the import path as necessary
 import ConflictError from "../error/conflictError";
 import NotFoundError from "../error/notFoundError";
 import { notifyOthers } from "./game";
-import  GameModel from "./../models/game"
-import { threadId } from "worker_threads";
+import GameModel from "./../models/game";
 import MovesModel from "../models/moves";
+import { Message } from "../interface/message";
 
 export async function createNewRoom(
   roomName: string,
   userId: number,
   socketId: string,
-  role:string
+  role: string
 ) {
   try {
     // Check if the room already exists
     const existingRoom = await RoomModel.findByName(roomName);
-
     if (existingRoom) {
       throw new ConflictError("Room Already Exists. Try A Different Name");
     }
-
     // If the room does not exist, create a new room
     await RoomModel.create(roomName, userId);
-    await RoomModel.addParticipant(roomName, userId, socketId,role);
+    await RoomModel.addParticipant(roomName, userId, socketId, role);
   } catch (error) {
     throw error;
   }
@@ -32,16 +30,14 @@ export const joinRoom = async (
   userId: number,
   roomName: string,
   socketId: string,
-  role:string
+  role: string
 ) => {
   try {
     const room = await RoomModel.findByName(roomName);
-   
 
     if (room) {
-      await RoomModel.addParticipant(roomName, userId, socketId,role);
+      await RoomModel.addParticipant(roomName, userId, socketId, role);
       let participant = await RoomModel.getParticipants(room.id);
-
       return { success: true, roomName, participant };
     } else {
       throw new NotFoundError("Room does not exist");
@@ -82,34 +78,41 @@ export const broadcastTurnToRoom = async (userId: number, turn: string) => {
   }
 };
 
-
-
-export async function  updateRoomStatus(roomName:string){
- RoomModel.updateStatus(roomName)  
+export async function updateRoomStatus(roomName: string) {
+  RoomModel.updateStatus(roomName);
 }
 
-export async function getActiveRooms(){
-  return await RoomModel.getActiveRooms()
+export async function getActiveRooms() {
+  return await RoomModel.getActiveRooms();
 }
 
-
-export async function addWatcher(roomName: string,
+export async function addWatcher(
+  roomName: string,
   userId: number,
   socketId: string,
-  role:string){
-      try{
-       let roomId=await RoomModel.getRoomIdByName(roomName)
-       let isUserInRoom=await RoomModel.checkIfUserIsInRoom(userId,roomId)
-      if(isUserInRoom.length==0){
-        await RoomModel.addParticipant(roomName, userId, socketId,role);
-      }
-    
-     let gameRoom= await GameModel.getGameRoomByRoomId(roomId)
-     let latestFen=await MovesModel.getLastestFen(gameRoom!.id)
-     return latestFen
+  role: string
+) {
+  try {
+    let roomId = await RoomModel.getRoomIdByName(roomName);
+    let isUserInRoom = await RoomModel.checkIfUserIsInRoom(userId, roomId);
+    if (isUserInRoom.length == 0) {
+      await RoomModel.addParticipant(roomName, userId, socketId, role);
     }
-      catch(error){
-        throw new ConflictError("User Is Already In The Room")
-      }
-      }
 
+    let gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+    let latestFen = await MovesModel.getLastestFen(gameRoom!.id);
+    return latestFen;
+  } catch (error) {
+    throw new ConflictError("User Is Already In The Room");
+  }
+}
+
+export async function sendMessage(message: Message, userId: number) {
+  try{
+  const socketIds = await RoomModel.getSocketIdsByRoomId(message.roomId);
+  notifyOthers(socketIds, "message", message);
+  }
+  catch(error){
+  }
+
+}

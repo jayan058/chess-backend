@@ -18,7 +18,8 @@ import {
   deleteRoom,
   joinRoom,
   handleTurn,
-  addWatcherToRoom
+  addWatcherToRoom,
+  sendMessage
 } from "./controller/room";
 import { ExtendedSocket } from "./interface/socket";
 import * as gameController from "./controller/game";
@@ -100,6 +101,13 @@ io.on("connection", (socket: ExtendedSocket) => {
     await addWatcherToRoom(userId, roomName, socket, socket.id);
 
   }); 
+
+  socket.on("message",async (message)=>{
+
+    
+    const userId=socket.user.id;
+    await sendMessage(message,userId)
+  })
   socket.on("disconnect",async () => {
     const userId = socket.user.id;
     await informOfGameOver(userId, socket,socket.id);

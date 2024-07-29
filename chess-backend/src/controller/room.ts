@@ -7,8 +7,9 @@ import { Participant } from "../interface/participant";
 import { startTimer, resetRoom } from "../utils/timer";
 import { mockReq } from "../utils/mockRequest";
 import { AuthenticatedRequest } from "../interface/authenticatedRequest";
-import { Request,Response } from "express";
+import { Request, Response } from "express";
 import { NextFunction } from "express";
+import { Message } from "../interface/message";
 // Function to create a room
 export const createRoom = async (
   userId: number,
@@ -17,7 +18,7 @@ export const createRoom = async (
   socket_id: string
 ) => {
   try {
-    await roomService.createNewRoom(roomName, userId, socket_id,"player");
+    await roomService.createNewRoom(roomName, userId, socket_id, "player");
     socket.join(roomName);
     socket.emit("roomCreated", { roomName: roomName });
   } catch (error) {
@@ -46,7 +47,12 @@ export async function joinRoom(
       return; // Exit early to prevent further processing
     }
 
-    let result = await roomService.joinRoom(userId, roomName, socket_id,"player");
+    let result = await roomService.joinRoom(
+      userId,
+      roomName,
+      socket_id,
+      "player"
+    );
     await roomService.updateRoomStatus(roomName);
     if (result.participant.length === 2) {
       const payload = result.participant.map((p, index) => ({
@@ -57,8 +63,6 @@ export async function joinRoom(
         userId: p.userId,
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
-
-    
 
       // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
@@ -79,8 +83,6 @@ export async function joinRoom(
       // Introduce a short delay before redirecting to the game
       setTimeout(() => {
         result.participant.forEach((p) => {
-       
-
           io.to(p.socketId).emit("redirectToGame");
           io.to(p.socketId).emit("gameStarted", {
             participants: payload,
@@ -91,11 +93,14 @@ export async function joinRoom(
             (p) => p.userId !== participant.userId
           );
           io.to(participant.socketId).emit("playerInfo", {
-            myId: participant.userId,
             myColor: participant.color,
+            myName: participant.name,
+            myPicture: participant.profilePicture,
+            myRoom:participant.roomId,
             otherParticipants: otherParticipants.map((p) => ({
-              userId: p.userId,
               color: p.color,
+              name: p.name,
+              picture: p.profilePicture,
             })),
           });
         });
@@ -128,38 +133,46 @@ export const handleTurn = async (
   }
 };
 
-export const  getActiveRooms=async(
+export const getActiveRooms = async (
   req: Request,
   res: Response,
   next: NextFunction
-)=> {
+) => {
   try {
     const rooms = await roomService.getActiveRooms();
-    res.json(rooms)
-   
-    
-
-    } catch (error) {
+    res.json(rooms);
+  } catch (error) {
     next(error);
   }
-}
+};
 
-
-
-export const  addWatcherToRoom=async(
+export const addWatcherToRoom = async (
   userId: number,
   roomName: string,
   socket: ExtendedSocket,
-  socketId: string,
-  
-)=> {
+  socketId: string
+) => {
   try {
-     
-    let lastestFen=await roomService.addWatcher(roomName,userId,socketId,"watcher")
+    let lastestFen = await roomService.addWatcher(
+      roomName,
+      userId,
+      socketId,
+      "watcher"
+    );
     console.log(lastestFen);
-    setTimeout(()=>  io.to(socketId).emit("latestFen",lastestFen),2000)
-  
-    } catch (error) {
-       
+    setTimeout(() => io.to(socketId).emit("latestFen", lastestFen), 2000);
+  } catch (error) {
+
   }
+};
+
+
+export async function sendMessage(message:Message,userId:number){
+  try{
+  await roomService.sendMessage(message,userId)
+  }
+  catch(error){
+    
+  }
+     
 }
