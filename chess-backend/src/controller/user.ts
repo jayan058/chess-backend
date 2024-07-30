@@ -29,10 +29,10 @@ export async function getUserDetails(
 
   try{
   const {email}=req.body.user
-  let userDetailsArray: UserDetails[] = await userServices.getUserDetails(email);
-  let userDetails: UserDetails = userDetailsArray[0];
+  let userDetailsArray = await userServices.getUserDetails(email);
+  let userDetails: UserDetails = userDetailsArray.foundUser[0];
   filePathCleaner(userDetails,req)
-  res.json(userDetails)
+  res.json(userDetailsArray)
   }
   catch(error){
     next(error)
