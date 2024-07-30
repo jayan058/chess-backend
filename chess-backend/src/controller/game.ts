@@ -2,6 +2,8 @@ import * as gameService from "./../services/game";
 import { ExtendedSocket } from "../interface/socket";
 import { Move } from "../interface/Move";
 import { func, string } from "joi";
+import { NextFunction } from "express";
+import { Request,Response } from "express";
 
 // Function to handle broadcasting a move
 export const handleMove = async (
@@ -77,4 +79,23 @@ export const gameOverByTimOut = async (
 
     }
   }
+
+  export  const  getGameMoveById= async(
+    req: Request,
+   res: Response,
+   next: NextFunction)=>{
+    try{
+    console.log("Here");
+    
+    let gameId= req.query.gameId
+    
+   let moves= await  gameService.getGameMoveById(gameId as string)
+   res.json(moves)
+    }
+    catch(error){
+
+    }
+
+  }
+
 

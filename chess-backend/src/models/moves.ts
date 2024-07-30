@@ -28,6 +28,17 @@ export default class MovesModel extends BaseModel {
 
   return result ? result.fen : null;
   }
+  static async getMovesByGameId(gameId: string): Promise<any[]> {
+     console.log(gameId);
+     
+    let ans= await this.queryBuilder()
+      .select('from','to') // Select all columns; adjust if needed
+      .from('moves')
+      .where('game_id', gameId)
+      .orderBy('created_at', 'asc'); 
+      return ans// Or 'desc' depending on the desired order
+  }
+  
 
 
 

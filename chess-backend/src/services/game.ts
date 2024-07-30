@@ -143,3 +143,9 @@ export async function notifyAudienceOfTimeOut(roomName:string,message:string){
   
 
 }
+export async function getGameMoveById(gameId:string){
+  
+  
+  let gameMoves=  MovesModel.getMovesByGameId(gameId)
+  return gameMoves
+}
