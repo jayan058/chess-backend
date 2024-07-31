@@ -150,12 +150,9 @@ export async function getGameMoveById(gameId:string){
   return gameMoves
 }
 
-export async function requestMoveRevert(userId:number){
 
-  
-  let roomId= await RoomModel.getRoomIdByUserId(userId)
-  let playerSocket=await RoomModel.getOtherPlayers(roomId)
-  console.log(playerSocket);
-  
-  notifyOthers(playerSocket,"revertRequest","Hello")
+export async function getUserStats( page: number, pageSize: number){
+  return await  GameModel.getUserStats(page, pageSize);
 }
+
+

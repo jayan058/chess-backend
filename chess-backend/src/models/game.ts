@@ -69,7 +69,21 @@ export default class Game extends BaseModel {
     
     return result!.total as number;
   }
+  static async  getUserStats(page: number, pageSize: number) {
+    const offset = (page - 1) * pageSize;
   
+    return this.queryBuilder()('users')
+      .leftJoin('game_results', 'users.id', 'game_results.winner_id')
+      .select('users.name as username')
+      .count('game_results.id as wins')
+      .groupBy('users.name')
+      .orderBy('wins', 'desc')
+      .limit(pageSize)
+      .offset(offset);
+  }
+
+
+
   
 
 }

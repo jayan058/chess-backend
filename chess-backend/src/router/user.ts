@@ -14,4 +14,6 @@ userRouter.post(
 
 userRouter.get("/getUserDetails", authMiddleWare.authenticate, userController.getUserDetails);
 
+
+
 export default userRouter;

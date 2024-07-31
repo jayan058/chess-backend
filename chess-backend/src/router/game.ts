@@ -9,4 +9,11 @@ gameRouter.get(
 );
 
 
+gameRouter.get(
+  "/leaderboard",
+  authMiddleWare.authenticate,
+  gameController.getUserStats
+);
+
+
 export default gameRouter
