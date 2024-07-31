@@ -31,15 +31,18 @@ export async function createUser(
   export async function getUserDetails(email: string, limit: number, offset: number) {
     let foundUser = await userModels.UserModel.findByEmail(email);
     let gameDetails = await Game.getGamesByUserId(foundUser[0].id, limit, offset);
+   
     let enhancedGameDetails = gameDetails.map((gameDetail) => ({
       ...gameDetail,
       yourId: foundUser[0].id,
     }));
+    let totalGames = await Game.countGamesByUserId(foundUser[0].id);
+    let totalPages = Math.ceil(totalGames / limit);
   
     if (foundUser.length === 0) {
       throw new ConflictError("No such user");
     }
-    return { foundUser, enhancedGameDetails };
+    return { foundUser, enhancedGameDetails,totalPages };
   }
   
 

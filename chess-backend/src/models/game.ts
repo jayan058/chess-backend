@@ -59,6 +59,17 @@ export default class Game extends BaseModel {
       .limit(limit)
       .offset(offset);
   }
+
+  static async countGamesByUserId(userId: number): Promise<number> {
+    const result = await this.queryBuilder()('games as g')
+      .count('g.id as total')
+      .where('g.white_player_id', userId)
+      .orWhere('g.black_player_id', userId)
+      .first();
+    
+    return result!.total as number;
+  }
+  
   
 
 }
