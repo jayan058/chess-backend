@@ -21,20 +21,24 @@ export async function createUser(
   }
 }
 
+// In your backend controller function
 export async function getUserDetails(
   req: Request<{}, {}, { user: AuthenticatedRequest }>,
   res: Response,
   next: NextFunction
-){
-
-  try{
-  const {email}=req.body.user
-  let userDetailsArray = await userServices.getUserDetails(email);
-  let userDetails: UserDetails = userDetailsArray.foundUser[0];
-  filePathCleaner(userDetails,req)
-  res.json(userDetailsArray)
-  }
-  catch(error){
-    next(error)
+) {
+  try {
+    const { email } = req.body.user;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+  
+    const userDetailsArray = await userServices.getUserDetails(email, limit, offset); 
+     let userDetails: UserDetails = userDetailsArray.foundUser[0];
+    filePathCleaner(userDetails,req)
+    res.json(userDetailsArray);
+  } catch (error) {
+    next(error);
   }
 }
+

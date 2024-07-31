@@ -28,20 +28,20 @@ export async function createUser(
 
     }
   }
-export async function getUserDetails(email:string){
-  let foundUser=await userModels.UserModel.findByEmail(email)
-  let gameDetails=await Game.getGamesByUserId(foundUser[0].id)
-  let enhancedGameDetails = gameDetails.map((gameDetail) => ({
-    ...gameDetail,
-    yourId: foundUser[0].id,
-  }));
+  export async function getUserDetails(email: string, limit: number, offset: number) {
+    let foundUser = await userModels.UserModel.findByEmail(email);
+    let gameDetails = await Game.getGamesByUserId(foundUser[0].id, limit, offset);
+    let enhancedGameDetails = gameDetails.map((gameDetail) => ({
+      ...gameDetail,
+      yourId: foundUser[0].id,
+    }));
   
-  if (foundUser.length == 0) {
-    throw new ConflictError("No such user");
-    
+    if (foundUser.length === 0) {
+      throw new ConflictError("No such user");
+    }
+    return { foundUser, enhancedGameDetails };
   }
-  return {foundUser,enhancedGameDetails}  
-}
+  
 
 
   

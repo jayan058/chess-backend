@@ -29,21 +29,17 @@ export default class Game extends BaseModel {
 
     await this.queryBuilder().insert(result).into("game_results");
   }
-  static async getGamesByUserId(userId: number): Promise<any[]> {
+  static async getGamesByUserId(userId: number, limit: number, offset: number): Promise<any[]> {
     return this.queryBuilder()('games as g')
       .select(
         'g.id as game_id',
         'g.white_player_id',
         'g.black_player_id',
         'u1.name as white_player_name',
-      
         'u2.name as black_player_name',
-      
         'gr.winner_id',
         'uw.name as winner_name',
-        
         'g.result',
-       
         'g.end_time',
         this.queryBuilder().raw(
           `CASE 
@@ -59,7 +55,10 @@ export default class Game extends BaseModel {
       .leftJoin('game_results as gr', 'g.id', 'gr.game_id')
       .leftJoin('users as uw', 'gr.winner_id', 'uw.id')
       .where('g.white_player_id', userId)
-      .orWhere('g.black_player_id', userId);
+      .orWhere('g.black_player_id', userId)
+      .limit(limit)
+      .offset(offset);
   }
+  
 
 }
