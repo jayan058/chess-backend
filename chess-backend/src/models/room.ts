@@ -196,23 +196,45 @@ export default class RoomModel extends BaseModel {
     return existingParticipant;
   }
 
+  static async getAllMessagesOfARoom(gameId: number): Promise<Message[]> {
+    console.log("Hello");
 
-    static async getAllMessagesOfARoom(gameId: number):Promise<Message []> {
-      console.log("Hello");
-      
-      const messages = await this.queryBuilder()
-        .select("*")
-        .from("chat")
-        .join("users", "chat.sender_id", "users.id")
-        .where("chat.game_id", gameId)
-        .orderBy("chat.created_at", "asc");
-    
+    const messages = await this.queryBuilder()
+      .select("*")
+      .from("chat")
+      .join("users", "chat.sender_id", "users.id")
+      .where("chat.game_id", gameId)
+      .orderBy("chat.created_at", "asc");
 
-      console.log(messages);
-        
-      return messages as Message [];
-    
-    
+    console.log(messages);
 
+    return messages as Message[];
   }
+
+  static async getOtherPlayers(roomId: number): Promise<string[]> {
+    // Query to get socket IDs for players in the specified room
+    const playerSocket = await this.queryBuilder()
+      .select("socket_id")
+      .from("room_participants")
+      .where("room_id", roomId)
+      .andWhere("role", "player");
+
+    // Extract socket IDs from the result
+
+    return playerSocket;
+  }
+
+  static async getWaitingRoom(): Promise<any> {
+    // Query to get the first room with status 'waiting' sorted by created_at
+    const waitingRoom = await this.queryBuilder()
+      .select("*") // Adjust the columns you want to select
+      .from("rooms")
+      .where("status", "waiting")
+      .orderBy("created_at", "asc")
+      .first(); // Get only the first row
+    console.log(waitingRoom);
+    
+    return waitingRoom;
+  }
+  
 }

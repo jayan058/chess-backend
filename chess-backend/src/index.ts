@@ -12,6 +12,7 @@ import {
   informOfGameOver,
   informOfCheckmate,
   informOfGameOverByMoves,
+  randomMatchRequest
 } from "./controller/game";
 import {
   createRoom,
@@ -99,6 +100,13 @@ io.on("connection", (socket: ExtendedSocket) => {
     const userId = socket.user.id;
     await sendMessage(message, userId);
   });
+
+  socket.on("randomMatchRequest", async () => {
+    const userId = socket.user.id;
+    await randomMatchRequest(userId,socket.id,socket);
+  });
+
+  
   socket.on("disconnect", async () => {
     const userId = socket.user.id;
     await informOfGameOver(userId, socket, socket.id);

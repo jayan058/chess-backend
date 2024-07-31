@@ -1,9 +1,10 @@
 import * as gameService from "./../services/game";
+import * as roomService from "./../services/room";
 import { ExtendedSocket } from "../interface/socket";
 import { Move } from "../interface/Move";
-import { func, string } from "joi";
 import { NextFunction } from "express";
-import { Request,Response } from "express";
+import { Request, Response } from "express";
+import { joinRoom } from "./room";
 
 // Function to handle broadcasting a move
 export const handleMove = async (
@@ -11,10 +12,10 @@ export const handleMove = async (
   move: Move,
   socket: ExtendedSocket,
   color: string,
-  boardFen:string
+  boardFen: string
 ) => {
   try {
-    await gameService.broadcastMoveToRoom(userId, move, color,boardFen);
+    await gameService.broadcastMoveToRoom(userId, move, color, boardFen);
   } catch (error) {
     console.error("Error handling move:", error);
     socket.emit("error", "Failed to handle move");
@@ -24,10 +25,10 @@ export const handleMove = async (
 export const informOfGameOver = async (
   userId: number,
   socket: ExtendedSocket,
-  sockeId:string
+  sockeId: string
 ) => {
   try {
-    await gameService.informOfGameOver(userId,sockeId);
+    await gameService.informOfGameOver(userId, sockeId);
   } catch (error) {
     socket.emit("error", "Failed to inform of gameover");
   }
@@ -57,45 +58,49 @@ export const informOfCheckmate = async (
   }
 };
 
-
 export const gameOverByTimOut = async (
-   roomName:string,
-   lossingColor:string
-  ) => {
-    try {
-      await gameService.gameOverByTimeout(roomName,lossingColor);
-    } catch (error) {
-      
-    }
-  };
+  roomName: string,
+  lossingColor: string
+) => {
+  try {
+    await gameService.gameOverByTimeout(roomName, lossingColor);
+  } catch (error) {}
+};
 
+export async function notifyAudienceOfTimeOut(
+  roomName: string,
+  message: string
+) {
+  try {
+    await gameService.notifyAudienceOfTimeOut(roomName, message);
+  } catch (error) {}
+}
 
-
-  export async function notifyAudienceOfTimeOut(roomName:string,message:string){
-    try{
-     await gameService.notifyAudienceOfTimeOut(roomName,message)
-    }
-    catch(error){
-
-    }
-  }
-
-  export  const  getGameMoveById= async(
-    req: Request,
-   res: Response,
-   next: NextFunction)=>{
-    try{
+export const getGameMoveById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
     console.log("Here");
-    
-    let gameId= req.query.gameId
-    
-   let moves= await  gameService.getGameMoveById(gameId as string)
-   res.json(moves)
-    }
-    catch(error){
 
-    }
+    let gameId = req.query.gameId;
 
+    let moves = await gameService.getGameMoveById(gameId as string);
+    res.json(moves);
+  } catch (error) {}
+};
+
+export const randomMatchRequest = async (
+  userId: number,
+  socketId: string,
+  socket: ExtendedSocket
+) => {
+  try {
+    let waitingRoom = await roomService.getWaitingRoom();
+    console.log(waitingRoom);
+    joinRoom(userId, waitingRoom.roomName, socket, socketId);
+  } catch (error) {
+    
   }
-
-
+};

@@ -149,3 +149,13 @@ export async function getGameMoveById(gameId:string){
   let gameMoves=  MovesModel.getMovesByGameId(gameId)
   return gameMoves
 }
+
+export async function requestMoveRevert(userId:number){
+
+  
+  let roomId= await RoomModel.getRoomIdByUserId(userId)
+  let playerSocket=await RoomModel.getOtherPlayers(roomId)
+  console.log(playerSocket);
+  
+  notifyOthers(playerSocket,"revertRequest","Hello")
+}

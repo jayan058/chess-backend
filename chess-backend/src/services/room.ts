@@ -125,3 +125,14 @@ export async function sendMessage(message: Message, userId: number) {
   }
 
 }
+
+export async function getWaitingRoom() {
+  try{  
+  
+  let waitingRoom=await RoomModel.getWaitingRoom()
+  return waitingRoom
+  }
+  catch(error){
+  }
+
+}
