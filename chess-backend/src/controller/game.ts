@@ -97,9 +97,18 @@ export const randomMatchRequest = async (
   socket: ExtendedSocket
 ) => {
   try {
+
+    console.log("First Time");
+    
     let waitingRoom = await roomService.getWaitingRoom();
     console.log(waitingRoom);
-    joinRoom(userId, waitingRoom.roomName, socket, socketId);
+    if(waitingRoom){
+        socket.emit("foundOpponent")  
+        joinRoom(userId, waitingRoom.roomName, socket, socketId);
+    }
+  
+
+  
   } catch (error) {
     
   }

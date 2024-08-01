@@ -37,6 +37,13 @@ export class UserModel extends BaseModel {
         return matchingUser;
       }
 
+      static async getTotalUsers() {
+        const totalCountQuery = await this.queryBuilder()('users')
+          .count('id as totalUsers');
+      return totalCountQuery[0].totalUsers
+    
+      }
+
 
 
 }

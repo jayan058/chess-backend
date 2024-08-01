@@ -66,7 +66,6 @@ export default class Game extends BaseModel {
       .where('g.white_player_id', userId)
       .orWhere('g.black_player_id', userId)
       .first();
-    
     return result!.total as number;
   }
   static async  getUserStats(page: number, pageSize: number) {

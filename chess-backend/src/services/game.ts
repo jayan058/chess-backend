@@ -9,6 +9,7 @@ import { Participant } from "../interface/participant";
 import NotFoundError from "../error/notFoundError";
 import { Move } from "../interface/Move";
 import { deleteRoom } from "./room";
+import { UserModel } from "../models/user";
 export const broadcastMoveToRoom = async (
   userId: number,
   move: Move,
@@ -152,7 +153,12 @@ export async function getGameMoveById(gameId:string){
 
 
 export async function getUserStats( page: number, pageSize: number){
-  return await  GameModel.getUserStats(page, pageSize);
+  let userStats=  await  GameModel.getUserStats(page, pageSize);
+  let totalUser=await UserModel.getTotalUsers()
+  let totalPages = Math.ceil( totalUser as number / pageSize);
+ return {userStats,totalPages}
+  
+
 }
 
 
