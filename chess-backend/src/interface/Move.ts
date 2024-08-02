@@ -1,4 +1,4 @@
-export interface Move{
-    from:String,
-    to:String
+export interface Move {
+  from: String;
+  to: String;
 }

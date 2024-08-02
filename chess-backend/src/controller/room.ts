@@ -15,7 +15,7 @@ export const createRoom = async (
   userId: number,
   roomName: string,
   socket: ExtendedSocket,
-  socket_id: string
+  socket_id: string,
 ) => {
   try {
     await roomService.createNewRoom(roomName, userId, socket_id, "player");
@@ -34,7 +34,7 @@ export async function joinRoom(
   userId: number,
   roomName: string,
   socket: ExtendedSocket,
-  socket_id: string
+  socket_id: string,
 ) {
   try {
     const roomStatus = await roomService.getRoomStatus(roomName);
@@ -51,7 +51,7 @@ export async function joinRoom(
       userId,
       roomName,
       socket_id,
-      "player"
+      "player",
     );
     await roomService.updateRoomStatus(roomName);
     if (result.participant.length === 2) {
@@ -64,7 +64,6 @@ export async function joinRoom(
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
 
-      // Notify each participant of their own ID, color, and other participants' details
       resetRoom(roomName);
       // Initialize timers for the room
       const participants: Participant[] = result.participant;
@@ -90,13 +89,13 @@ export async function joinRoom(
         });
         payload.forEach((participant) => {
           const otherParticipants = payload.filter(
-            (p) => p.userId !== participant.userId
+            (p) => p.userId !== participant.userId,
           );
           io.to(participant.socketId).emit("playerInfo", {
             myColor: participant.color,
             myName: participant.name,
             myPicture: participant.profilePicture,
-            myRoom:participant.roomId,
+            myRoom: participant.roomId,
             otherParticipants: otherParticipants.map((p) => ({
               color: p.color,
               name: p.name,
@@ -123,7 +122,7 @@ export const deleteRoom = async (userId: number) => {
 export const handleTurn = async (
   userId: number,
   turn: string,
-  socket: ExtendedSocket
+  socket: ExtendedSocket,
 ) => {
   try {
     await roomService.broadcastTurnToRoom(userId, turn);
@@ -136,7 +135,7 @@ export const handleTurn = async (
 export const getActiveRooms = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const rooms = await roomService.getActiveRooms();
@@ -150,38 +149,30 @@ export const addWatcherToRoom = async (
   userId: number,
   roomName: string,
   socket: ExtendedSocket,
-  socketId: string
+  socketId: string,
 ) => {
   try {
     let latestData = await roomService.addWatcher(
       roomName,
       userId,
       socketId,
-      "watcher"
+      "watcher",
     );
-   
+
     setTimeout(() => io.to(socketId).emit("latestData", latestData), 5000);
-    console.log(latestData);
-    latestData.messages.forEach(message => {
+
+    latestData.messages.forEach((message) => {
       filePathCleaner(message, mockReq);
-  });
+    });
 
-  latestData.participants.forEach(participant=>{
-    filePathCleaner(participant,mockReq)
-  })
-
-  } catch (error) {
-
-  }
+    latestData.participants.forEach((participant) => {
+      filePathCleaner(participant, mockReq);
+    });
+  } catch (error) {}
 };
 
-
-export async function sendMessage(message:Message,userId:number){
-  try{
-  await roomService.sendMessage(message,userId)
-  }
-  catch(error){
-
-  }
-     
+export async function sendMessage(message: Message, userId: number) {
+  try {
+    await roomService.sendMessage(message, userId);
+  } catch (error) {}
 }

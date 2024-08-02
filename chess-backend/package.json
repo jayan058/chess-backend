@@ -10,7 +10,9 @@
     "migrate": "npm run knex migrate:latest --verbose",
     "rollback": "npm run knex migrate:rollback --verbose",
     "seed:make": "npm run knex seed:make --verbose",
-    "seed:run": "npm run knex seed:run --verbose"
+    "seed:run": "npm run knex seed:run --verbose",
+    "format": "prettier --write \"src/**/*.{js,ts,tsx,css,scss,md}\""
+
   },
   "author": "",
   "license": "ISC",
@@ -67,6 +69,7 @@
     "@types/supertest": "^6.0.2",
     "@types/to-snake-case": "^1.0.2",
     "knex": "^3.1.0",
+    "prettier": "^3.3.3",
     "supertest": "^7.0.0"
   }
 }

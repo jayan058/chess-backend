@@ -29,9 +29,8 @@ export function startTimer(roomName: string, color: "white" | "black") {
         color: "black",
         time: room.blackTime,
       });
-    
-      if (room.blackTime <= 0) {
 
+      if (room.blackTime <= 0) {
         clearInterval(room.interval);
         handleTimeOut(roomName, "black");
       }
@@ -40,14 +39,15 @@ export function startTimer(roomName: string, color: "white" | "black") {
 }
 
 async function handleTimeOut(roomName: string, color: "white" | "black") {
-
-
   const losingColor = color;
   const winningColor = color === "white" ? "black" : "white";
   const message = `Looks like it's timeout for ${losingColor}. Sorry ${losingColor}, you lose by timeout. Congrats ${winningColor}, you win by timeout!`;
   io.to(roomName).emit("timeOut", message);
-  await notifyAudienceOfTimeOut(roomName,`${losingColor} LOST THE GAME BY TIMEOUT`)
-  gameOverByTimeout(roomName,winningColor)
+  await notifyAudienceOfTimeOut(
+    roomName,
+    `${losingColor} LOST THE GAME BY TIMEOUT`,
+  );
+  gameOverByTimeout(roomName, winningColor);
 }
 
 export function initializeRoom(roomName: string) {

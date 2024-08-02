@@ -47,6 +47,7 @@ export async function login(email: string, password: string, res: Response) {
     secure: true,
     maxAge: REFRESH_TOKEN_AGE,
   });
+
   refreshTokens.push(refreshToken);
   res.status(StatusCodes.OK).json({
     accessToken: accessToken,

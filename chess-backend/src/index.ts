@@ -12,7 +12,7 @@ import {
   informOfGameOver,
   informOfCheckmate,
   informOfGameOverByMoves,
-  randomMatchRequest
+  randomMatchRequest,
 } from "./controller/game";
 import {
   createRoom,
@@ -30,7 +30,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 
 const server = http.createServer(app);
@@ -49,7 +49,6 @@ app.use(router);
 const uploadsPath = path.join(__dirname, "uploads");
 app.use("/uploads", express.static(uploadsPath));
 
-
 io.use(authenticateSocket);
 
 io.on("connection", (socket: ExtendedSocket) => {
@@ -63,7 +62,6 @@ io.on("connection", (socket: ExtendedSocket) => {
     try {
       const userId = socket.user.id;
       await joinRoom(userId, roomName, socket, socket.id);
-      (socket as any).roomName = roomName;
     } catch (error) {}
   });
   socket.on("move", async (move, playerId, color, boardFen) => {
@@ -96,17 +94,15 @@ io.on("connection", (socket: ExtendedSocket) => {
   });
 
   socket.on("message", async (message) => {
-  
     const userId = socket.user.id;
     await sendMessage(message, userId);
   });
 
   socket.on("randomMatchRequest", async () => {
     const userId = socket.user.id;
-    await randomMatchRequest(userId,socket.id,socket);
+    await randomMatchRequest(userId, socket.id, socket);
   });
 
-  
   socket.on("disconnect", async () => {
     const userId = socket.user.id;
     await informOfGameOver(userId, socket, socket.id);

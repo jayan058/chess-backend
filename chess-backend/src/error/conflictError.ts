@@ -1,5 +1,5 @@
-import CustomError from './customError';
-import { StatusCodes } from 'http-status-codes';
+import CustomError from "./customError";
+import { StatusCodes } from "http-status-codes";
 
 class ConflictError extends CustomError {
   constructor(message: string) {

@@ -56,7 +56,7 @@ export default class RoomModel extends BaseModel {
     roomName: string,
     userId: number,
     socketId: string,
-    role: string
+    role: string,
   ) {
     // Find the room by name
     const room = await this.findByName(roomName);
@@ -197,16 +197,12 @@ export default class RoomModel extends BaseModel {
   }
 
   static async getAllMessagesOfARoom(gameId: number): Promise<Message[]> {
-    console.log("Hello");
-
     const messages = await this.queryBuilder()
       .select("*")
       .from("chat")
       .join("users", "chat.sender_id", "users.id")
       .where("chat.game_id", gameId)
       .orderBy("chat.created_at", "asc");
-
-    console.log(messages);
 
     return messages as Message[];
   }
@@ -232,9 +228,7 @@ export default class RoomModel extends BaseModel {
       .where("status", "waiting")
       .orderBy("created_at", "asc")
       .first(); // Get only the first row
-    console.log(waitingRoom);
-    
+
     return waitingRoom;
   }
-  
 }

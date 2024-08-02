@@ -11,7 +11,7 @@ export async function createNewRoom(
   roomName: string,
   userId: number,
   socketId: string,
-  role: string
+  role: string,
 ) {
   try {
     // Check if the room already exists
@@ -31,7 +31,7 @@ export const joinRoom = async (
   userId: number,
   roomName: string,
   socketId: string,
-  role: string
+  role: string,
 ) => {
   try {
     const room = await RoomModel.findByName(roomName);
@@ -91,48 +91,45 @@ export async function addWatcher(
   roomName: string,
   userId: number,
   socketId: string,
-  role: string
+  role: string,
 ) {
   try {
     let roomId = await RoomModel.getRoomIdByName(roomName);
     let isUserInRoom = await RoomModel.checkIfUserIsInRoom(userId, roomId);
-    let participants=await RoomModel.getParticipants(roomId)
+    let participants = await RoomModel.getParticipants(roomId);
     if (isUserInRoom.length == 0) {
       await RoomModel.addParticipant(roomName, userId, socketId, role);
     }
 
     let gameRoom = await GameModel.getGameRoomByRoomId(roomId);
     let latestFen = await MovesModel.getLastestFen(gameRoom!.id);
-    let messages=await RoomModel.getAllMessagesOfARoom(gameRoom!.id)
-    let user=await UserModel.findById(userId)
+    let messages = await RoomModel.getAllMessagesOfARoom(gameRoom!.id);
+    let user = await UserModel.findById(userId);
 
-    return {latestFen,messages,user,participants};
+    return { latestFen, messages, user, participants };
   } catch (error) {
     throw new ConflictError("User Is Already In The Room");
   }
 }
 
 export async function sendMessage(message: Message, userId: number) {
-  try{  
-  const socketIds = await RoomModel.getSocketIdsByRoomId(message.roomId!);
-  notifyOthers(socketIds, "message",message );
-  let gameRoom=await GameModel.getGameRoomByRoomId(message.roomId!)
-  ChatModel.InsertMessage(message.content!,gameRoom.id,userId,message.roomId!,message.timestamp!
-  )
-
-  }
-  catch(error){
-  }
-
+  try {
+    const socketIds = await RoomModel.getSocketIdsByRoomId(message.roomId!);
+    notifyOthers(socketIds, "message", message);
+    let gameRoom = await GameModel.getGameRoomByRoomId(message.roomId!);
+    ChatModel.InsertMessage(
+      message.content!,
+      gameRoom.id,
+      userId,
+      message.roomId!,
+      message.timestamp!,
+    );
+  } catch (error) {}
 }
 
 export async function getWaitingRoom() {
-  try{  
-  
-  let waitingRoom=await RoomModel.getWaitingRoom()
-  return waitingRoom
-  }
-  catch(error){
-  }
-
+  try {
+    let waitingRoom = await RoomModel.getWaitingRoom();
+    return waitingRoom;
+  } catch (error) {}
 }

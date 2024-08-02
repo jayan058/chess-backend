@@ -9,11 +9,13 @@ userRouter.post(
   "/",
   multerMiddleware.uploadPhotoMiddleware,
   validateBody(userSchema.createUserSchema),
-  userController.createUser
+  userController.createUser,
 );
 
-userRouter.get("/getUserDetails", authMiddleWare.authenticate, userController.getUserDetails);
-
-
+userRouter.get(
+  "/getUserDetails",
+  authMiddleWare.authenticate,
+  userController.getUserDetails,
+);
 
 export default userRouter;

@@ -12,7 +12,7 @@ export const handleMove = async (
   move: Move,
   socket: ExtendedSocket,
   color: string,
-  boardFen: string
+  boardFen: string,
 ) => {
   try {
     await gameService.broadcastMoveToRoom(userId, move, color, boardFen);
@@ -25,7 +25,7 @@ export const handleMove = async (
 export const informOfGameOver = async (
   userId: number,
   socket: ExtendedSocket,
-  sockeId: string
+  sockeId: string,
 ) => {
   try {
     await gameService.informOfGameOver(userId, sockeId);
@@ -37,7 +37,7 @@ export const informOfGameOver = async (
 export const informOfGameOverByMoves = async (
   userId: number,
   socket: ExtendedSocket,
-  message: string
+  message: string,
 ) => {
   try {
     await gameService.informOfGameOverByMove(userId, message);
@@ -49,7 +49,7 @@ export const informOfGameOverByMoves = async (
 export const informOfCheckmate = async (
   userId: number,
   socket: ExtendedSocket,
-  message: string
+  message: string,
 ) => {
   try {
     await gameService.informOfCheckmate(userId, message);
@@ -60,7 +60,7 @@ export const informOfCheckmate = async (
 
 export const gameOverByTimOut = async (
   roomName: string,
-  lossingColor: string
+  lossingColor: string,
 ) => {
   try {
     await gameService.gameOverByTimeout(roomName, lossingColor);
@@ -69,7 +69,7 @@ export const gameOverByTimOut = async (
 
 export async function notifyAudienceOfTimeOut(
   roomName: string,
-  message: string
+  message: string,
 ) {
   try {
     await gameService.notifyAudienceOfTimeOut(roomName, message);
@@ -79,11 +79,9 @@ export async function notifyAudienceOfTimeOut(
 export const getGameMoveById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    console.log("Here");
-
     let gameId = req.query.gameId;
 
     let moves = await gameService.getGameMoveById(gameId as string);
@@ -94,26 +92,17 @@ export const getGameMoveById = async (
 export const randomMatchRequest = async (
   userId: number,
   socketId: string,
-  socket: ExtendedSocket
+  socket: ExtendedSocket,
 ) => {
   try {
-
-    console.log("First Time");
-    
     let waitingRoom = await roomService.getWaitingRoom();
-    console.log(waitingRoom);
-    if(waitingRoom){
-        socket.emit("foundOpponent")  
-        joinRoom(userId, waitingRoom.roomName, socket, socketId);
+
+    if (waitingRoom) {
+      socket.emit("foundOpponent");
+      joinRoom(userId, waitingRoom.roomName, socket, socketId);
     }
-  
-
-  
-  } catch (error) {
-    
-  }
+  } catch (error) {}
 };
-
 
 export async function getUserStats(req: Request, res: Response): Promise<void> {
   const page = parseInt(req.query.page as string) || 1;
@@ -123,8 +112,6 @@ export async function getUserStats(req: Request, res: Response): Promise<void> {
     const userStats = await gameService.getUserStats(page, pageSize);
     res.json(userStats);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user stats' });
+    res.status(500).json({ error: "Failed to fetch user stats" });
   }
 }
-
-

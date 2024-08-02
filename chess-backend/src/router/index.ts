@@ -8,8 +8,8 @@ const router = express();
 
 router.use("/user", userRouter);
 router.use("/login", authRoute);
-router.use("/offline",offlineRoute)
-router.use("/room",roomRouter)
-router.use("/games",gameRouter)
+router.use("/offline", offlineRoute);
+router.use("/room", roomRouter);
+router.use("/games", gameRouter);
 
-export default router
+export default router;

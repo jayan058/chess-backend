@@ -14,7 +14,7 @@ export const broadcastMoveToRoom = async (
   userId: number,
   move: Move,
   color: string,
-  boardFen:string
+  boardFen: string,
 ) => {
   try {
     // Get the room ID for the current user's socket ID
@@ -28,8 +28,8 @@ export const broadcastMoveToRoom = async (
     notifyOthers(socketIds, "move", move);
     const nextColor = color === "white" ? "black" : "white"; // Switch turn color
     let roomName = await RoomModel.getRoomByNameAndId(roomId);
-    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);    
-    await MovesModel.saveMove(move, gameRoom.id,boardFen);
+    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+    await MovesModel.saveMove(move, gameRoom.id, boardFen);
     startTimer(roomName.roomName, nextColor);
   } catch (error) {}
 };
@@ -61,40 +61,35 @@ export async function createGame(participants: Participant[]) {
 
 export async function informOfGameOver(
   userId: number,
-  disconnectedSocketId: string
+  disconnectedSocketId: string,
 ) {
   const roomId = await RoomModel.getRoomIdByUserId(userId);
   if (!roomId) {
     throw new NotFoundError("User is not in a room");
   }
-     
-  const roleofUser=await RoomModel.getRoleOfUser(userId)
 
-  if(roleofUser=='player'){
-     const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-  notifyOthers(
-    socketIds,
-    "game-over",
-    "Oops It Looks Like Opponent has disconnected. You Win!!!!"
-  );
-  let winnerId = await RoomModel.getOtherUserInRoom(userId, roomId);
-  const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-  await GameModel.addGameResults(
-    gameRoom!.id,
-    winnerId[0].userId,
-    "disconnect"
-  );
-  RoomModel.deleteRoom(userId)
+  const roleofUser = await RoomModel.getRoleOfUser(userId);
+
+  if (roleofUser == "player") {
+    const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+    notifyOthers(
+      socketIds,
+      "game-over",
+      "Oops It Looks Like Opponent has disconnected. You Win!!!!",
+    );
+    let winnerId = await RoomModel.getOtherUserInRoom(userId, roomId);
+    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+    await GameModel.addGameResults(
+      gameRoom!.id,
+      winnerId[0].userId,
+      "disconnect",
+    );
+    RoomModel.deleteRoom(userId);
+  } else {
+    await RoomModel.deleteParticipant(userId);
   }
-
-  else{
-  await  RoomModel.deleteParticipant(userId)
-  }
-
-
 
   // Retrieve all socket IDs for the room
-  
 }
 
 export async function informOfGameOverByMove(userId: number, message: string) {
@@ -106,7 +101,6 @@ export async function informOfGameOverByMove(userId: number, message: string) {
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "gameOverByMoves", message);
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-
 
   await GameModel.addGameResults(gameRoom!.id, userId, "checkmate");
 }
@@ -123,11 +117,11 @@ export async function informOfCheckmate(userId: number, message: string) {
 
 export async function gameOverByTimeout(
   roomName: string,
-  lossingColor: string
+  lossingColor: string,
 ) {
   let roomId = await RoomModel.getRoomIdByName(roomName);
   if (!roomId) {
-    return ;
+    return;
   }
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
   const losingColorId =
@@ -136,29 +130,22 @@ export async function gameOverByTimeout(
   await deleteRoom(losingColorId);
 }
 
-
-export async function notifyAudienceOfTimeOut(roomName:string,message:string){
-  let roomId=await RoomModel.getRoomIdByName(roomName)
+export async function notifyAudienceOfTimeOut(
+  roomName: string,
+  message: string,
+) {
+  let roomId = await RoomModel.getRoomIdByName(roomName);
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "timeOutNotifyForAudience", message);
-  
-
 }
-export async function getGameMoveById(gameId:string){
-  
-  
-  let gameMoves=  MovesModel.getMovesByGameId(gameId)
-  return gameMoves
+export async function getGameMoveById(gameId: string) {
+  let gameMoves = MovesModel.getMovesByGameId(gameId);
+  return gameMoves;
 }
 
-
-export async function getUserStats( page: number, pageSize: number){
-  let userStats=  await  GameModel.getUserStats(page, pageSize);
-  let totalUser=await UserModel.getTotalUsers()
-  let totalPages = Math.ceil( totalUser as number / pageSize);
- return {userStats,totalPages}
-  
-
+export async function getUserStats(page: number, pageSize: number) {
+  let userStats = await GameModel.getUserStats(page, pageSize);
+  let totalUser = await UserModel.getTotalUsers();
+  let totalPages = Math.ceil((totalUser as number) / pageSize);
+  return { userStats, totalPages };
 }
-
-

@@ -1,16 +1,15 @@
 import { verify, TokenExpiredError } from "jsonwebtoken";
 import config from "../config";
 import UnauthorizedError from "../error/unauthorizedError";
-import { ExtendedSocket } from '.././interface/socket';
-
+import { ExtendedSocket } from ".././interface/socket";
 
 // Socket.IO middleware for authentication
-export function authenticateSocket(socket: ExtendedSocket, next: (err?: any) => void) { 
+export function authenticateSocket(
+  socket: ExtendedSocket,
+  next: (err?: any) => void,
+) {
+  const token = socket.handshake.auth?.token;
 
-   
-     
-  const token = socket.handshake.auth?.token;  
-  
   if (!token) {
     return next(new UnauthorizedError("Unauthenticated"));
   }
@@ -21,7 +20,7 @@ export function authenticateSocket(socket: ExtendedSocket, next: (err?: any) => 
       email: string;
     };
     socket.user = decoded; // Attach user info to socket
-    
+
     next();
   } catch (error) {
     if (error instanceof TokenExpiredError) {
