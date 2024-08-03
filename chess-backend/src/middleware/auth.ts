@@ -1,10 +1,11 @@
+//All the necessary imports
 import { Request, Response, NextFunction } from "express";
 import { verify, TokenExpiredError } from "jsonwebtoken";
 import config from "../config";
 import UnauthorizedError from "../error/unauthorizedError";
-import ForbiddenError from "../error/forbiddenError";
 import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 
+//Function to authenticate users
 export function authenticate(
   req: Request<{}, {}, { user: AuthenticatedRequest }>,
   res: Response,

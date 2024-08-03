@@ -168,6 +168,9 @@ export default class RoomModel extends BaseModel {
     return rooms;
   }
 
+   
+  
+
   static async getRoleOfUser(userId: number): Promise<string> {
     const result = await this.queryBuilder()
       .select("role")

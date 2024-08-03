@@ -1,3 +1,4 @@
+//All the necessary imports
 import * as gameService from "./../services/game";
 import * as roomService from "./../services/room";
 import { ExtendedSocket } from "../interface/socket";
@@ -17,11 +18,11 @@ export const handleMove = async (
   try {
     await gameService.broadcastMoveToRoom(userId, move, color, boardFen);
   } catch (error) {
-    console.error("Error handling move:", error);
     socket.emit("error", "Failed to handle move");
   }
 };
 
+//Function to inform of game over
 export const informOfGameOver = async (
   userId: number,
   socket: ExtendedSocket,
@@ -34,6 +35,7 @@ export const informOfGameOver = async (
   }
 };
 
+//Function to inform of game over by moves(check-mate)
 export const informOfGameOverByMoves = async (
   userId: number,
   socket: ExtendedSocket,
@@ -46,6 +48,7 @@ export const informOfGameOverByMoves = async (
   }
 };
 
+//Function to inform the users that a check as occured in the game
 export const informOfCheckmate = async (
   userId: number,
   socket: ExtendedSocket,
@@ -58,15 +61,20 @@ export const informOfCheckmate = async (
   }
 };
 
-export const gameOverByTimOut = async (
+//Function to inform of game over by timeout
+export const gameOverByTimeOut = async (
   roomName: string,
   lossingColor: string,
+  socket: ExtendedSocket,
 ) => {
   try {
     await gameService.gameOverByTimeout(roomName, lossingColor);
-  } catch (error) {}
+  } catch (error) {
+    socket.emit("error", "Failed to handle game over by timeout");
+  }
 };
 
+//Function to notify the audience of timeout
 export async function notifyAudienceOfTimeOut(
   roomName: string,
   message: string,
@@ -76,6 +84,7 @@ export async function notifyAudienceOfTimeOut(
   } catch (error) {}
 }
 
+//Function to get game moves by game Id
 export const getGameMoveById = async (
   req: Request,
   res: Response,
@@ -83,12 +92,14 @@ export const getGameMoveById = async (
 ) => {
   try {
     let gameId = req.query.gameId;
-
     let moves = await gameService.getGameMoveById(gameId as string);
     res.json(moves);
-  } catch (error) {}
+  } catch (error) {
+    next(error);
+  }
 };
 
+//Function to handle the random match request
 export const randomMatchRequest = async (
   userId: number,
   socketId: string,
@@ -101,10 +112,17 @@ export const randomMatchRequest = async (
       socket.emit("foundOpponent");
       joinRoom(userId, waitingRoom.roomName, socket, socketId);
     }
-  } catch (error) {}
+  } catch (error) {
+    socket.emit("error", "Failed to pair with Random User");
+  }
 };
 
-export async function getUserStats(req: Request, res: Response): Promise<void> {
+//Function to get the leaderboard
+export async function getUserStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const page = parseInt(req.query.page as string) || 1;
   const pageSize = parseInt(req.query.pageSize as string) || 10;
 
@@ -112,6 +130,6 @@ export async function getUserStats(req: Request, res: Response): Promise<void> {
     const userStats = await gameService.getUserStats(page, pageSize);
     res.json(userStats);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch user stats" });
+    next(error);
   }
 }

@@ -1,17 +1,16 @@
 import * as userModels from "../models/user";
-import jwt from "jsonwebtoken";
-import { verify } from "jsonwebtoken";
-import { Response } from "express";
+import jwt, { verify, sign } from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import config from "../config";
+import { Response, Request } from "express";
+import { ACCESS_TOKEN_AGE, REFRESH_TOKEN_AGE } from "../constants";
+import { StatusCodes } from "http-status-codes";
 import NotFoundError from "../error/notFoundError";
 import UnauthorizedError from "../error/unauthorizedError";
-const { sign } = jwt;
-const bcrypt = require("bcrypt");
-import config from "../config";
 import ForbiddenError from "../error/forbiddenError";
-import { StatusCodes } from "http-status-codes";
-import { ACCESS_TOKEN_AGE, REFRESH_TOKEN_AGE } from "../constants";
 
 let refreshTokens: string[] = [];
+
 export async function login(email: string, password: string, res: Response) {
   const userExists = await userModels.UserModel.findByEmail(email);
 
@@ -30,22 +29,10 @@ export async function login(email: string, password: string, res: Response) {
   };
   payload.name = payload.name.charAt(0).toUpperCase() + payload.name.slice(1);
   const accessToken = sign(payload, config.jwt.jwt_secret!, {
-    expiresIn: config.jwt.accessTokenExpiryMS,
+    expiresIn: ACCESS_TOKEN_AGE,
   });
   const refreshToken = sign(payload, config.jwt.jwt_secret!, {
-    expiresIn: config.jwt.refreshTokenExpiryMS,
-  });
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: false,
-    secure: false,
-    maxAge: ACCESS_TOKEN_AGE,
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    maxAge: REFRESH_TOKEN_AGE,
+    expiresIn: REFRESH_TOKEN_AGE,
   });
 
   refreshTokens.push(refreshToken);
@@ -54,4 +41,47 @@ export async function login(email: string, password: string, res: Response) {
     refreshToken: refreshToken,
     message: `Welcome Back ${payload.name}`,
   });
+}
+
+// Add the refresh token endpoint
+export async function refreshToken(req: Request, res: Response) {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Refresh token is required" });
+  }
+
+  if (!refreshTokens.includes(refreshToken)) {
+    return res
+      .status(StatusCodes.FORBIDDEN)
+      .json({ message: "Invalid refresh token" });
+  }
+
+  try {
+    const payload = verify(refreshToken, config.jwt.jwt_secret!);
+    const { id, name, email } = payload as {
+      id: string;
+      name: string;
+      email: string;
+    };
+    const newPayload = { id, name, email };
+
+    try {
+      const newAccessToken = sign(newPayload, config.jwt.jwt_secret!, {
+        expiresIn: ACCESS_TOKEN_AGE,
+      });
+
+      res.status(StatusCodes.OK).json({
+        accessToken: newAccessToken,
+      });
+    } catch (error: any) {
+      console.error(error.message);
+    }
+  } catch (error) {
+    res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Invalid refresh token" });
+  }
 }

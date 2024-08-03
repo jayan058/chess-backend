@@ -8,6 +8,7 @@ import * as authMiddleWare from "../middleware/auth";
 userRouter.post(
   "/",
   multerMiddleware.uploadPhotoMiddleware,
+  multerMiddleware.setDefaultPhotoMiddleware,
   validateBody(userSchema.createUserSchema),
   userController.createUser,
 );
@@ -17,5 +18,11 @@ userRouter.get(
   authMiddleWare.authenticate,
   userController.getUserDetails,
 );
+
+
+userRouter.get("/details",authMiddleWare.authenticate,userController.getDetails)
+
+
+
 
 export default userRouter;

@@ -1,14 +1,15 @@
+//All the necessary imports
 import { verify, TokenExpiredError } from "jsonwebtoken";
 import config from "../config";
 import UnauthorizedError from "../error/unauthorizedError";
 import { ExtendedSocket } from ".././interface/socket";
 
-// Socket.IO middleware for authentication
+// Socket.IO middleware for authentication during socket connections
 export function authenticateSocket(
   socket: ExtendedSocket,
   next: (err?: any) => void,
 ) {
-  const token = socket.handshake.auth?.token;
+  const token = socket.handshake.auth?.token; //Getting the token form the socket connection
 
   if (!token) {
     return next(new UnauthorizedError("Unauthenticated"));

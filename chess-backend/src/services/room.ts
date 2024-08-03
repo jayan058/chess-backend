@@ -1,4 +1,4 @@
-import RoomModel from "../models/room"; // Adjust the import path as necessary
+import RoomModel from "../models/room"; 
 import ConflictError from "../error/conflictError";
 import NotFoundError from "../error/notFoundError";
 import { notifyOthers } from "./game";
@@ -84,7 +84,13 @@ export async function updateRoomStatus(roomName: string) {
 }
 
 export async function getActiveRooms() {
+  try{
   return await RoomModel.getActiveRooms();
+  }
+  catch(error){
+    console.log(error);
+    
+  }
 }
 
 export async function addWatcher(
@@ -124,12 +130,16 @@ export async function sendMessage(message: Message, userId: number) {
       message.roomId!,
       message.timestamp!,
     );
-  } catch (error) {}
+  } catch (error) {
+
+  }
 }
 
 export async function getWaitingRoom() {
   try {
     let waitingRoom = await RoomModel.getWaitingRoom();
     return waitingRoom;
-  } catch (error) {}
+  } catch (error) {
+    throw new NotFoundError("No Waiting Rooms Found")
+  }
 }

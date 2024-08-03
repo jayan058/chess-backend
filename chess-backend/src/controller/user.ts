@@ -1,3 +1,4 @@
+//All the necessary imports
 import { Request, Response, NextFunction } from "express";
 import * as userServices from "./../services/user";
 import { AuthenticatedRequest } from "../interface/authenticatedRequest";
@@ -5,6 +6,7 @@ import getRelativeFilePath from "../utils/getRelativeFilePath";
 import { UserDetails } from "../interface/userDetails";
 import { filePathCleaner } from "../utils/filePathCleaner";
 
+//Function to create a user
 export async function createUser(
   req: Request,
   res: Response,
@@ -21,7 +23,7 @@ export async function createUser(
   }
 }
 
-// In your backend controller function
+//Function to get all the user details
 export async function getUserDetails(
   req: Request<{}, {}, { user: AuthenticatedRequest }>,
   res: Response,
@@ -45,3 +47,23 @@ export async function getUserDetails(
     next(error);
   }
 }
+
+export async function getDetails(
+  req: Request<{}, {}, { user: AuthenticatedRequest }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+  const { email } = req.body.user;
+  
+   let userDetails=await userServices.getDetails( email)
+   console.log(userDetails);
+   
+   filePathCleaner(userDetails[0] as UserDetails, req);
+   res.json(userDetails)
+  } catch (error) {
+    next(error);
+  }
+}
+
+

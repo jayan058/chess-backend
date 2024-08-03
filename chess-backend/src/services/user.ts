@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import ConflictError from "../error/conflictError";
 import ValidationError from "../error/validationError";
 import Game from "../models/game";
+import NotFoundError from "../error/notFoundError";
 export async function createUser(
   name: string,
   email: string,
@@ -45,4 +46,14 @@ export async function getUserDetails(
     throw new ConflictError("No such user");
   }
   return { foundUser, enhancedGameDetails, totalPages };
+}
+
+export  async function getDetails(email:string){
+ try{
+  return await userModels.UserModel.findByEmail(email);
+
+ }
+ catch(error){
+  throw new NotFoundError("User Not Found")
+ }
 }

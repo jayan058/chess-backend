@@ -1,4 +1,5 @@
-import { ExtendedSocket } from "../interface/socket"; // Custom types for extended socket
+//All the necessary imports
+import { ExtendedSocket } from "../interface/socket";
 import * as roomService from "../services/room";
 import { io } from "..";
 import { filePathCleaner } from "../utils/filePathCleaner";
@@ -6,10 +7,15 @@ import * as gameService from "./../services/game";
 import { Participant } from "../interface/participant";
 import { startTimer, resetRoom } from "../utils/timer";
 import { mockReq } from "../utils/mockRequest";
-import { AuthenticatedRequest } from "../interface/authenticatedRequest";
 import { Request, Response } from "express";
 import { NextFunction } from "express";
 import { Message } from "../interface/message";
+
+//Declaring constant for timers
+export const roomTimers: {
+  [roomName: string]: { whiteTime: number; blackTime: number; interval: any };
+} = {};
+
 // Function to create a room
 export const createRoom = async (
   userId: number,
@@ -26,10 +32,8 @@ export const createRoom = async (
     socket.emit("roomExists", { roomName: roomName });
   }
 };
-export const roomTimers: {
-  [roomName: string]: { whiteTime: number; blackTime: number; interval: any };
-} = {};
 
+// Function for second player to join the room
 export async function joinRoom(
   userId: number,
   roomName: string,
@@ -44,16 +48,19 @@ export async function joinRoom(
       socket.emit("joinRoomError", {
         message: "Two People Are Already Playing Here",
       });
-      return; // Exit early to prevent further processing
+      return;
     }
-
+    //Add the second user to the room
     let result = await roomService.joinRoom(
       userId,
       roomName,
       socket_id,
       "player",
     );
+    //Update the room status to active
     await roomService.updateRoomStatus(roomName);
+
+    //Send the room information to both the participants
     if (result.participant.length === 2) {
       const payload = result.participant.map((p, index) => ({
         socketId: p.socketId,
@@ -63,16 +70,16 @@ export async function joinRoom(
         userId: p.userId,
         color: index === 0 ? "white" : "black", // Assign color based on the index
       }));
-
+      //Reset the room timers
       resetRoom(roomName);
-      // Initialize timers for the room
+      //Create a game for the corresponding room
       const participants: Participant[] = result.participant;
       gameService.createGame(participants);
 
       // Clean the file paths for each participant
       payload.forEach((participant) => filePathCleaner(participant, mockReq));
 
-      // Notify both users that the room is full
+      //Notify both users that an opponent has connected
       result.participant.forEach((p) => {
         io.to(p.socketId).emit("opponentConnected", {
           participants: payload,
@@ -103,7 +110,7 @@ export async function joinRoom(
             })),
           });
         });
-
+        // Start the timers for the game
         setTimeout(() => startTimer(roomName, "white"), 3000);
       }, 10000);
 
@@ -114,11 +121,16 @@ export async function joinRoom(
   }
 }
 
-// Function to delete a room
-export const deleteRoom = async (userId: number) => {
-  await roomService.deleteRoom(userId);
+// Function to delete a room on game over
+export const deleteRoom = async (userId: number, socket: ExtendedSocket) => {
+  try {
+    await roomService.deleteRoom(userId);
+  } catch (error) {
+    socket.emit("error", "Failed to delete room");
+  }
 };
 
+//Function to handle turn for the game
 export const handleTurn = async (
   userId: number,
   turn: string,
@@ -132,6 +144,7 @@ export const handleTurn = async (
   }
 };
 
+//Function to get all the active room to send to the watcher
 export const getActiveRooms = async (
   req: Request,
   res: Response,
@@ -145,6 +158,7 @@ export const getActiveRooms = async (
   }
 };
 
+//Function to add watcher to the room
 export const addWatcherToRoom = async (
   userId: number,
   roomName: string,
@@ -158,7 +172,7 @@ export const addWatcherToRoom = async (
       socketId,
       "watcher",
     );
-
+    //Send the latest fen notation to the watcher
     setTimeout(() => io.to(socketId).emit("latestData", latestData), 5000);
 
     latestData.messages.forEach((message) => {
@@ -168,11 +182,20 @@ export const addWatcherToRoom = async (
     latestData.participants.forEach((participant) => {
       filePathCleaner(participant, mockReq);
     });
-  } catch (error) {}
+  } catch (error) {
+    socket.emit("error", "Failed to add watcher to the room");
+  }
 };
 
-export async function sendMessage(message: Message, userId: number) {
+//Function to send message
+export async function sendMessage(
+  message: Message,
+  userId: number,
+  socket: ExtendedSocket,
+) {
   try {
     await roomService.sendMessage(message, userId);
-  } catch (error) {}
+  } catch (error) {
+    socket.emit("error", "Failed to send message");
+  }
 }
