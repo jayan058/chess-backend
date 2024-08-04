@@ -56,9 +56,6 @@ To set up and run the Chess Game Application locally, follow these steps:
   ```
 
 4. **Setup the .env file by taking reference form the .env.example file**  
-  ```bash
-  npm install
-  ```
 
 5. **Setup the Database**  
   ```bash
