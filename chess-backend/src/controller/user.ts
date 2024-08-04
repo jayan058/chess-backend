@@ -47,23 +47,3 @@ export async function getUserDetails(
     next(error);
   }
 }
-
-export async function getDetails(
-  req: Request<{}, {}, { user: AuthenticatedRequest }>,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-  const { email } = req.body.user;
-  
-   let userDetails=await userServices.getDetails( email)
-   console.log(userDetails);
-   
-   filePathCleaner(userDetails[0] as UserDetails, req);
-   res.json(userDetails)
-  } catch (error) {
-    next(error);
-  }
-}
-
-

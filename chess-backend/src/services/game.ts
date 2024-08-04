@@ -1,64 +1,57 @@
+//All the necessary imports
 import RoomModel from "../models/room";
-import { io } from "..";
 import GameModel from "../models/game";
 import { startTimer } from "../utils/timer";
 import MovesModel from "../models/moves";
-
-// Function to broadcast a move to all socket IDs in a room
 import { Participant } from "../interface/participant";
 import NotFoundError from "../error/notFoundError";
 import { Move } from "../interface/Move";
 import { deleteRoom } from "./room";
 import { UserModel } from "../models/user";
+import { notifyOthers } from "../utils/notifyOthers";
+
+//Function to broadcast move to all the people in the room
 export const broadcastMoveToRoom = async (
   userId: number,
   move: Move,
   color: string,
   boardFen: string,
 ) => {
-  try {
-    // Get the room ID for the current user's socket ID
-    const roomId = await RoomModel.getRoomIdByUserId(userId);
-    if (!roomId) {
-      throw new Error("User is not in a room");
-    }
-    // Retrieve all socket IDs for the room
-    const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-    // Broadcast the move to all socket IDs in the room
-    notifyOthers(socketIds, "move", move);
-    const nextColor = color === "white" ? "black" : "white"; // Switch turn color
-    let roomName = await RoomModel.getRoomByNameAndId(roomId);
-    const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-    await MovesModel.saveMove(move, gameRoom.id, boardFen);
-    startTimer(roomName.roomName, nextColor);
-  } catch (error) {}
+  const roomId = await RoomModel.getRoomIdByUserId(userId);
+  if (!roomId) {
+    throw new NotFoundError("User is not in a room");
+  }
+  // Retrieve all socket IDs for the room
+  const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
+  // Broadcast the move to all socket IDs in the room
+  notifyOthers(socketIds, "move", move);
+  const nextColor = color === "white" ? "black" : "white"; // Switch turn color
+  let roomName = await RoomModel.getRoomByNameAndId(roomId);
+  const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
+  await MovesModel.saveMove(move, gameRoom.id, boardFen);
+  startTimer(roomName.roomName, nextColor); //Function to update whose timer decreases once the move is made
 };
 
-export const notifyOthers = (socketIds: string[], event: string, data: any) => {
-  socketIds.forEach((socketId: string) => {
-    io.to(socketId).emit(event, data);
-  });
-};
+//Function to create a new game
 
 export async function createGame(participants: Participant[]) {
-  try {
-    if (participants.length < 2) {
-      throw new Error("Not enough participants to create a game.");
-    }
+  if (participants.length < 2) {
+    throw new Error("Not enough participants to create a game.");
+  }
 
-    const whitePlayer = participants[0];
-    const blackPlayer = participants[1];
+  const whitePlayer = participants[0];
+  const blackPlayer = participants[1];
 
-    const newGame = {
-      white_player_id: whitePlayer.userId,
-      black_player_id: blackPlayer.userId,
-      room_id: whitePlayer.roomId,
-      start_time: new Date(),
-    };
-    GameModel.createGame(newGame);
-  } catch (error) {}
+  const newGame = {
+    white_player_id: whitePlayer.userId,
+    black_player_id: blackPlayer.userId,
+    room_id: whitePlayer.roomId,
+    start_time: new Date(),
+  };
+  GameModel.createGame(newGame);
 }
 
+//Function to inform of game error
 export async function informOfGameOver(
   userId: number,
   disconnectedSocketId: string,
@@ -69,7 +62,7 @@ export async function informOfGameOver(
   }
 
   const roleofUser = await RoomModel.getRoleOfUser(userId);
-
+  //Only if the player who has disconnected is player then only delete the room
   if (roleofUser == "player") {
     const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
     notifyOthers(
@@ -83,15 +76,14 @@ export async function informOfGameOver(
       gameRoom!.id,
       winnerId[0].userId,
       "disconnect",
-    );
-    RoomModel.deleteRoom(userId);
+    ); //Function to add the result to the result table
+    RoomModel.deleteRoom(userId); //If one player leaves the room then delete the room
   } else {
-    await RoomModel.deleteParticipant(userId);
+    await RoomModel.deleteParticipant(userId); //If the person who leaves is watcher then only delete the participant from the room
   }
-
-  // Retrieve all socket IDs for the room
 }
 
+//Function to inform of game over by moves(check-mate)
 export async function informOfGameOverByMove(userId: number, message: string) {
   const roomId = await RoomModel.getRoomIdByUserId(userId);
   if (!roomId) {
@@ -101,7 +93,6 @@ export async function informOfGameOverByMove(userId: number, message: string) {
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "gameOverByMoves", message);
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-
   await GameModel.addGameResults(gameRoom!.id, userId, "checkmate");
 }
 
@@ -112,9 +103,10 @@ export async function informOfCheckmate(userId: number, message: string) {
   }
   // Retrieve all socket IDs for the room
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
-  notifyOthers(socketIds, "checkMate", message);
+  notifyOthers(socketIds, "checkMate", message); //Notify other people that a check has occured in the game
 }
 
+//Function to inform other of game over by timeour
 export async function gameOverByTimeout(
   roomName: string,
   lossingColor: string,
@@ -124,12 +116,13 @@ export async function gameOverByTimeout(
     return;
   }
   const gameRoom = await GameModel.getGameRoomByRoomId(roomId);
-  const losingColorId =
+  const winningColorId =
     lossingColor === "white" ? gameRoom.whitePlayerId : gameRoom.blackPlayerId;
-  await GameModel.addGameResults(gameRoom!.id, losingColorId, "timeout");
-  await deleteRoom(losingColorId);
+  await GameModel.addGameResults(gameRoom!.id, winningColorId, "timeout"); //Add the result to the results table
+  await deleteRoom(winningColorId);
 }
 
+//Function to notify the audience of the timeout
 export async function notifyAudienceOfTimeOut(
   roomName: string,
   message: string,
@@ -138,11 +131,14 @@ export async function notifyAudienceOfTimeOut(
   const socketIds = await RoomModel.getSocketIdsByRoomId(roomId);
   notifyOthers(socketIds, "timeOutNotifyForAudience", message);
 }
+
+//Function to retrive all the moves of the game using the game id
 export async function getGameMoveById(gameId: string) {
   let gameMoves = MovesModel.getMovesByGameId(gameId);
   return gameMoves;
 }
 
+//Function to get the user stats for the leaderboard
 export async function getUserStats(page: number, pageSize: number) {
   let userStats = await GameModel.getUserStats(page, pageSize);
   let totalUser = await UserModel.getTotalUsers();

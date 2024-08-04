@@ -19,10 +19,4 @@ userRouter.get(
   userController.getUserDetails,
 );
 
-
-userRouter.get("/details",authMiddleWare.authenticate,userController.getDetails)
-
-
-
-
 export default userRouter;

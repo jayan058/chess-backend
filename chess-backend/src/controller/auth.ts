@@ -12,8 +12,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-
-//Function to get new access token using the refresh token 
+//Function to get new access token using the refresh token
 
 export async function refreshToken(
   req: Request,

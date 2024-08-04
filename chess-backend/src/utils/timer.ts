@@ -1,7 +1,7 @@
 //Necessary imports
 import { io } from "..";
 import { roomTimers } from "../controller/room";
-import { gameOverByTimeout, notifyOthers } from "../services/game";
+import { gameOverByTimeout } from "../services/game";
 import { notifyAudienceOfTimeOut } from "../controller/game";
 import { WHITE_TIMER, BLACK_TIMER } from "../constants";
 //Function to start the timer

@@ -2,7 +2,6 @@ import { Message } from "../interface/message";
 import BaseModel from "./baseModel";
 
 export default class RoomModel extends BaseModel {
-  // Create a new room
   static async create(roomName: string, createdBy: number) {
     const roomToCreate = {
       room_name: roomName,
@@ -23,7 +22,6 @@ export default class RoomModel extends BaseModel {
     return room;
   }
 
-  // Update room status
   static async updateStatus(roomName: string) {
     await this.queryBuilder()
       .table("rooms")
@@ -33,21 +31,19 @@ export default class RoomModel extends BaseModel {
       });
   }
 
-  // Get all rooms
   static async getAll() {
     const rooms = await this.queryBuilder().select("*").from("rooms");
 
     return rooms;
   }
 
-  // Optional: Method to get all participants of a room
   static async getParticipants(roomId: number) {
     const participants = await this.queryBuilder()
       .select("*")
       .from("room_participants")
       .join("users", "room_participants.user_id", "users.id")
       .where("room_participants.room_id", roomId)
-      .orderBy("room_participants.joined_at", "asc"); // Adding the ORDER BY clause
+      .orderBy("room_participants.joined_at", "asc");
 
     return participants;
   }
@@ -58,14 +54,12 @@ export default class RoomModel extends BaseModel {
     socketId: string,
     role: string,
   ) {
-    // Find the room by name
     const room = await this.findByName(roomName);
 
     if (!room) {
       throw new Error("Room not found");
     }
 
-    // Add the participant to the room
     await this.queryBuilder()
       .insert({
         room_id: room.id,
@@ -87,7 +81,6 @@ export default class RoomModel extends BaseModel {
     return result.roomId;
   }
 
-  // Function to get all socket IDs by room ID
   static async getSocketIdsByRoomId(roomId: number) {
     const results = await this.queryBuilder()
       .select("socket_id")
@@ -106,21 +99,17 @@ export default class RoomModel extends BaseModel {
     if (!roomsToDelete) {
       return;
     }
-    // //   // Extract room IDs from the results
 
-    // //   // Delete all rows with the specified userId from room_participants
     await this.queryBuilder()
       .from("room_participants")
       .where("user_id", userId)
       .delete();
 
-    //   // Delete all rows from room_participants with the same room_id as the userId
     await this.queryBuilder()
       .from("room_participants")
       .where("room_id", roomsToDelete.roomId)
       .delete();
 
-    // // // Step 4: Delete the room with the specified room_id
     await this.queryBuilder()
       .from("rooms")
       .where("id", roomsToDelete.roomId)
@@ -146,7 +135,7 @@ export default class RoomModel extends BaseModel {
       .select("user_id")
       .from("room_participants")
       .where("room_participants.room_id", roomId)
-      .andWhere("room_participants.user_id", "<>", userId); // Exclude the specified user
+      .andWhere("room_participants.user_id", "<>", userId);
 
     return userIds;
   }
@@ -155,7 +144,7 @@ export default class RoomModel extends BaseModel {
       .select("id")
       .from("rooms")
       .where("room_name", roomName)
-      .first(); // Fetch the first result only
+      .first();
 
     return room?.id ?? null;
   }
@@ -167,9 +156,6 @@ export default class RoomModel extends BaseModel {
       .where({ status: "active" });
     return rooms;
   }
-
-   
-  
 
   static async getRoleOfUser(userId: number): Promise<string> {
     const result = await this.queryBuilder()
@@ -211,26 +197,22 @@ export default class RoomModel extends BaseModel {
   }
 
   static async getOtherPlayers(roomId: number): Promise<string[]> {
-    // Query to get socket IDs for players in the specified room
     const playerSocket = await this.queryBuilder()
       .select("socket_id")
       .from("room_participants")
       .where("room_id", roomId)
       .andWhere("role", "player");
 
-    // Extract socket IDs from the result
-
     return playerSocket;
   }
 
   static async getWaitingRoom(): Promise<any> {
-    // Query to get the first room with status 'waiting' sorted by created_at
     const waitingRoom = await this.queryBuilder()
-      .select("*") // Adjust the columns you want to select
+      .select("*")
       .from("rooms")
       .where("status", "waiting")
       .orderBy("created_at", "asc")
-      .first(); // Get only the first row
+      .first();
 
     return waitingRoom;
   }

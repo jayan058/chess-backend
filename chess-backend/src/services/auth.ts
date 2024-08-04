@@ -1,5 +1,5 @@
 import * as userModels from "../models/user";
-import jwt, { verify, sign } from "jsonwebtoken";
+import { verify, sign } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import config from "../config";
 import { Response, Request } from "express";
@@ -7,10 +7,11 @@ import { ACCESS_TOKEN_AGE, REFRESH_TOKEN_AGE } from "../constants";
 import { StatusCodes } from "http-status-codes";
 import NotFoundError from "../error/notFoundError";
 import UnauthorizedError from "../error/unauthorizedError";
-import ForbiddenError from "../error/forbiddenError";
+import BadRequestError from "../error/badRequestError";
 
-let refreshTokens: string[] = [];
+let refreshTokens: string[] = []; //Array to store all the refresh tokens
 
+//Login function which will send a new access token and a refresh token to the frontend
 export async function login(email: string, password: string, res: Response) {
   const userExists = await userModels.UserModel.findByEmail(email);
 
@@ -43,20 +44,16 @@ export async function login(email: string, password: string, res: Response) {
   });
 }
 
-// Add the refresh token endpoint
+//Function that will generate the new access token from the given refresh token
 export async function refreshToken(req: Request, res: Response) {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Refresh token is required" });
+    throw new NotFoundError("Refresh token is required");
   }
 
   if (!refreshTokens.includes(refreshToken)) {
-    return res
-      .status(StatusCodes.FORBIDDEN)
-      .json({ message: "Invalid refresh token" });
+    throw new UnauthorizedError("Invalid refresh token");
   }
 
   try {
@@ -80,8 +77,6 @@ export async function refreshToken(req: Request, res: Response) {
       console.error(error.message);
     }
   } catch (error) {
-    res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Invalid refresh token" });
+    throw new UnauthorizedError("Invalid refresh token");
   }
 }

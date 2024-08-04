@@ -5,6 +5,8 @@ import ConflictError from "../error/conflictError";
 import ValidationError from "../error/validationError";
 import Game from "../models/game";
 import NotFoundError from "../error/notFoundError";
+
+//Function to create a new user
 export async function createUser(
   name: string,
   email: string,
@@ -27,6 +29,8 @@ export async function createUser(
     throw new ValidationError("Error creating user", " ");
   }
 }
+
+//Function to get all the details of the user (including the games played by the user)using the email
 export async function getUserDetails(
   email: string,
   limit: number,
@@ -46,14 +50,4 @@ export async function getUserDetails(
     throw new ConflictError("No such user");
   }
   return { foundUser, enhancedGameDetails, totalPages };
-}
-
-export  async function getDetails(email:string){
- try{
-  return await userModels.UserModel.findByEmail(email);
-
- }
- catch(error){
-  throw new NotFoundError("User Not Found")
- }
 }

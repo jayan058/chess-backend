@@ -21,17 +21,17 @@ export default class MovesModel extends BaseModel {
       .select("fen")
       .from("moves")
       .where("game_id", gameId)
-      .orderBy("created_at", "desc") // Assuming you have a 'created_at' column
-      .first(); // Get the most recent move
+      .orderBy("created_at", "desc")
+      .first();
 
     return result ? result.fen : null;
   }
   static async getMovesByGameId(gameId: string): Promise<any[]> {
     let ans = await this.queryBuilder()
-      .select("from", "to") // Select all columns; adjust if needed
+      .select("from", "to")
       .from("moves")
       .where("game_id", gameId)
       .orderBy("created_at", "asc");
-    return ans; // Or 'desc' depending on the desired order
+    return ans;
   }
 }

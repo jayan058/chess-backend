@@ -1,5 +1,4 @@
 import BaseModel from "./baseModel";
-import { Move } from "../interface/Move";
 export default class ChatModel extends BaseModel {
   static async InsertMessage(
     message: string,
