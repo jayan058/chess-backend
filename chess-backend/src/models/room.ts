@@ -135,7 +135,8 @@ export default class RoomModel extends BaseModel {
       .select("user_id")
       .from("room_participants")
       .where("room_participants.room_id", roomId)
-      .andWhere("room_participants.user_id", "<>", userId);
+      .andWhere("room_participants.user_id", "<>", userId)
+      .andWhere("role", "<>", "watcher");
 
     return userIds;
   }
